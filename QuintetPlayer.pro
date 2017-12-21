@@ -32,11 +32,11 @@ SOURCES += \
 
 HEADERS += \
         src/mainwindow.h \
-    bass/bass.h \
     src/clHCA.h \
-    bass/bassmix.h \
     src/utils.h \
-    src/HCAStreamChannel.h
+    src/HCAStreamChannel.h \
+    bass/bass.h \
+    bass/bassmix.h
 
 FORMS += \
         mainwindow.ui
