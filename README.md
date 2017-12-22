@@ -1,5 +1,5 @@
 # Million Live Quintet Player
-Quintet player for MLTD using the BASS audio library. HCA decryption code uses a modified version of https://github.com/Nyagamon/HCADecoder.
+Quintet player for MLTD using the BASS audio library. HCA decryption code uses a modified version of https://github.com/Nyagamon/HCADecoder. Inspired by https://www.youtube.com/watch?v=4eOz9x5wy3k.
 
 # How to build
   1. Download dependencies from http://www.un4seen.com/ (bass and bassmix).
