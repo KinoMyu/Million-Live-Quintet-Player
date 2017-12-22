@@ -25,12 +25,14 @@ void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double&
 	double leftVol, rightVol;
 	std::map<DWORD, VolumePan>::iterator iter;
 
+    // Reset positions to start
 	BASS_ChannelSetPosition(bgm, 0, BASS_POS_BYTE);
     for (int j = 0; j < NUM_IDOLS; ++j)
 	{
 		BASS_ChannelSetPosition(idols[j], 0, BASS_POS_BYTE);
 	}
 
+    // Start WAV Header
 	BASS_ChannelGetInfo(bgm, &info);
 	wf.wFormatTag = 1;
     wf.nChannels = info.chans;
@@ -42,7 +44,9 @@ void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double&
 	fwrite(&wf, 16, 1, fp);
 	fwrite("data\0\0\0\0", 8, 1, fp);
 
-	while (BASS_ChannelIsActive(bgm)) {
+    // Write sample data
+    while (BASS_ChannelIsActive(bgm))
+    {
 		int c = BASS_ChannelGetData(bgm, tempbuf, 20000);
 		for (int i = 0; i < 10000; ++i)
 		{
@@ -77,7 +81,7 @@ void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double&
 		fwrite(buf, 1, c, fp);
 		pos = BASS_ChannelGetPosition(bgm, BASS_POS_BYTE);
 	}
-	// complete WAV header
+    // Complete WAV header
 	fflush(fp);
 	p = ftell(fp);
 	fseek(fp, 4, SEEK_SET);

@@ -14,7 +14,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    BASS_SetConfig(BASS_CONFIG_MIXER_BUFFER,5);
+
+    mix_stream = BASS_Mixer_StreamCreate(44100,2,0);
+
     idolsel[0] = ui->idolsel0;
     idolsel[1] = ui->idolsel1;
     idolsel[2] = ui->idolsel2;
@@ -25,20 +27,23 @@ MainWindow::MainWindow(QWidget *parent) :
     idolactivity[2] = ui->idolactive2;
     idolactivity[3] = ui->idolactive3;
     idolactivity[4] = ui->idolactive4;
+    idolimg[0] = ui->idolimage0;
+    idolimg[1] = ui->idolimage1;
+    idolimg[2] = ui->idolimage2;
+    idolimg[3] = ui->idolimage3;
+    idolimg[4] = ui->idolimage4;
+
     bgmVol = 0.6;
     idolVol = 0.6;
     solo = false;
-    mix_stream = BASS_Mixer_StreamCreate(44100,2,0);
-    currSong = "bnthtr";
+
+    currSong = "";
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
-        currIdols[i] = "001har";
+        currIdols[i] = "";
+        idolimg[i]->setScaledContents(true);
     }
-    ui->idolimage0->setScaledContents(true);
-    ui->idolimage1->setScaledContents(true);
-    ui->idolimage2->setScaledContents(true);
-    ui->idolimage3->setScaledContents(true);
-    ui->idolimage4->setScaledContents(true);
+
     connect(ui->BGMSlider, SIGNAL(valueChanged(int)), this, SLOT(setBGMVol(int)));
     connect(ui->idolSlider, SIGNAL(valueChanged(int)), this, SLOT(setIdolVol(int)));
     connect(ui->positionSlider, SIGNAL(valueChanged(int)), this, SLOT(setPosition(int)));
@@ -54,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->saveButton, SIGNAL(released()), this, SLOT(save()));
     connect(ui->soloButton, SIGNAL(toggled(bool)), this, SLOT(setSolo(bool)));
     connect(ui->unitButton, SIGNAL(toggled(bool)), this, SLOT(setUnit(bool)));
+
     parse_names(readablesong_to_filename, "res/songlist.txt", &(ui->songsel), 1);
     parse_names(readableidol_to_filename, "res/idollist.txt", idolsel, NUM_IDOLS);
 
@@ -73,7 +79,7 @@ void MainWindow::timerEvent(QTimerEvent *event)
     }
 }
 
-void MainWindow::updateControls()
+void MainWindow::updateUIPosition()
 {
     DWORD len = BASS_ChannelGetLength(bgm.get_decode_channel(), BASS_POS_BYTE);
     DWORD pos = BASS_ChannelGetPosition(bgm.get_decode_channel(), BASS_POS_BYTE);
@@ -88,6 +94,11 @@ void MainWindow::updateControls()
     QString result;
     QTextStream(&result) << "Position: " << p/60 << QString(":%1").arg(p%60, 2, 10, QChar('0')) << "/" << l/60 << QString(":%1").arg(l%60, 2, 10, QChar('0'));
     ui->statusBar->showMessage(result);
+}
+
+void MainWindow::updateIdolActivity()
+{
+    DWORD pos;
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
         VolumePan vp;
@@ -102,6 +113,12 @@ void MainWindow::updateControls()
         }
         idolactivity[i]->setChecked(vp.vol > 0);
     }
+}
+
+void MainWindow::updateControls()
+{
+    updateUIPosition();
+    updateIdolActivity();
 }
 
 void MainWindow::setBGMVol(int value)
@@ -122,9 +139,10 @@ void MainWindow::setIdolVol(int value)
 void MainWindow::setIdol0(const QString& qStr)
 {
     currIdols[0] = readableidol_to_filename[qStr.toUtf8().constData()];
+    // A bit hacky, as the pixmap goes out of scope.
     QString filename = QString::fromStdString("res/img/" + currIdols[0] + ".png");
     QPixmap pixmap = QPixmap(filename);
-    ui->idolimage0->setPixmap(pixmap);
+    idolimg[0]->setPixmap(pixmap);
     setIdol(0);
 }
 
@@ -133,7 +151,7 @@ void MainWindow::setIdol1(const QString& qStr)
     currIdols[1] = readableidol_to_filename[qStr.toUtf8().constData()];
     QString filename = QString::fromStdString("res/img/" + currIdols[1] + ".png");
     QPixmap pixmap = QPixmap(filename);
-    ui->idolimage1->setPixmap(pixmap);
+    idolimg[1]->setPixmap(pixmap);
     setIdol(1);
 }
 
@@ -142,7 +160,7 @@ void MainWindow::setIdol2(const QString& qStr)
     currIdols[2] = readableidol_to_filename[qStr.toUtf8().constData()];
     QString filename = QString::fromStdString("res/img/" + currIdols[2] + ".png");
     QPixmap pixmap = QPixmap(filename);
-    ui->idolimage2->setPixmap(pixmap);
+    idolimg[2]->setPixmap(pixmap);
     setIdol(2);
 }
 
@@ -151,7 +169,7 @@ void MainWindow::setIdol3(const QString& qStr)
     currIdols[3] = readableidol_to_filename[qStr.toUtf8().constData()];
     QString filename = QString::fromStdString("res/img/" + currIdols[3] + ".png");
     QPixmap pixmap = QPixmap(filename);
-    ui->idolimage3->setPixmap(pixmap);
+    idolimg[3]->setPixmap(pixmap);
     setIdol(3);
 }
 
@@ -160,7 +178,7 @@ void MainWindow::setIdol4(const QString& qStr)
     currIdols[4] = readableidol_to_filename[qStr.toUtf8().constData()];
     QString filename = QString::fromStdString("res/img/" + currIdols[4] + ".png");
     QPixmap pixmap = QPixmap(filename);
-    ui->idolimage4->setPixmap(pixmap);
+    idolimg[4]->setPixmap(pixmap);
     setIdol(4);
 }
 
@@ -169,6 +187,7 @@ void MainWindow::setBGM(const QString& qStr)
     std::string name = qStr.toUtf8().constData();
     currSong = readablesong_to_filename[name];
     BASS_ChannelPause(mix_stream);
+    BASS_Mixer_ChannelRemove(bgm.get_decode_channel());
     bgm.unload();
     bgm.load("res/" + currSong + "/bgm.hca");
     BASS_Mixer_StreamAddChannel(mix_stream, bgm.get_decode_channel(), 0);
@@ -176,6 +195,7 @@ void MainWindow::setBGM(const QString& qStr)
     BASS_ChannelSetAttribute(bgm.get_decode_channel(),BASS_ATTRIB_VOL,bgmVol);
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
+        BASS_Mixer_ChannelRemove(idols[i].get_decode_channel());
         idols[i].unload();
         idols[i].load("res/" + currSong + "/" + currIdols[i] + ".hca");
         BASS_Mixer_StreamAddChannel(mix_stream, idols[i].get_decode_channel(), 0);
@@ -196,14 +216,15 @@ void MainWindow::setPosition(int value)
     DWORD len = BASS_ChannelGetLength(bgm.get_decode_channel(), BASS_POS_BYTE);
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
-        BASS_ChannelSetPosition(idols[i].get_decode_channel(), len / 1000. * value, BASS_POS_BYTE);
+        BASS_ChannelSetPosition(idols[i].get_decode_channel(), (long double)len / 2 / ui->positionSlider->maximum() * value, BASS_POS_BYTE);
         fuzzy_adjust_vol_pan(idols[i].get_decode_channel(), idolInfo[i]);
     }
-    BASS_ChannelSetPosition(bgm.get_decode_channel(), len / 500. * value, BASS_POS_BYTE);
+    BASS_ChannelSetPosition(bgm.get_decode_channel(), (long double)len / ui->positionSlider->maximum() * value, BASS_POS_BYTE);
 }
 
 void MainWindow::play()
 {
+    // Check if we're at the end
     QWORD pos = BASS_ChannelGetLength(bgm.get_decode_channel(),BASS_POS_BYTE);
     if(pos == BASS_ChannelGetPosition(bgm.get_decode_channel(),BASS_POS_BYTE))
     {
@@ -213,6 +234,11 @@ void MainWindow::play()
         {
             BASS_ChannelSetPosition(idols[i].get_decode_channel(), 0, BASS_POS_BYTE);
         }
+    }
+    // Clear buffer if player was paused
+    if(BASS_ChannelIsActive(mix_stream) == BASS_ACTIVE_PAUSED)
+    {
+        BASS_ChannelPlay(mix_stream, TRUE);
     }
     BASS_ChannelPlay(mix_stream, FALSE);
 }
@@ -224,11 +250,13 @@ void MainWindow::pause()
 
 void MainWindow::reset()
 {
+    // Check if we're at the end so we don't automatically play after reset
     QWORD pos = BASS_ChannelGetLength(bgm.get_decode_channel(),BASS_POS_BYTE);
     if(pos == BASS_ChannelGetPosition(bgm.get_decode_channel(),BASS_POS_BYTE))
     {
         BASS_ChannelPause(mix_stream);
     }
+    // Set positions and flush buffer
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
         BASS_Mixer_ChannelSetPosition(idols[i].get_decode_channel(), 0, BASS_POS_BYTE);
@@ -249,6 +277,7 @@ void MainWindow::save()
     {
         idoldecodechannels[i] = idols[i].get_decode_channel();
     }
+    // Stream needs to be paused else the output will be garbled
     BASS_ChannelPause(mix_stream);
     export_to_wav(bgm.get_decode_channel(), idoldecodechannels, bgmVol, idolVol, idolInfo, filename);
     reset();
@@ -256,6 +285,7 @@ void MainWindow::save()
 
 void MainWindow::setIdol(int index)
 {
+    // Cleanup wave and channel data
     if(idols[index].get_decode_channel() != 0)
     {
         BASS_Mixer_ChannelRemove(idols[index].get_decode_channel());
@@ -276,10 +306,13 @@ void MainWindow::setUnit(bool checked)
         solo = false;
         for(int i = 0; i < NUM_IDOLS; ++i)
         {
+            // Don't unload, rather just cleanup channels
+            BASS_Mixer_ChannelRemove(idols[i].get_decode_channel());
             idols[i].destroy_channels();
             idols[i].make_channels();
             idolInfo[i].second.clear();
         }
+        // Set control and volume
         parse_control_file(idolInfo, "res/" + currSong + "/control.txt", idolVol);
         DWORD idoldecodechannels[NUM_IDOLS];
         for(int i = 0; i < NUM_IDOLS; ++i)
@@ -301,6 +334,8 @@ void MainWindow::setSolo(bool checked)
         solo = true;
         for(int i = 0; i < NUM_IDOLS; ++i)
         {
+            // Don't unload, rather just cleanup channels
+            BASS_Mixer_ChannelRemove(idols[i].get_decode_channel());
             idols[i].destroy_channels();
             if(i == 2)
             {
@@ -311,6 +346,7 @@ void MainWindow::setSolo(bool checked)
             BASS_Mixer_StreamAddChannel(mix_stream, idols[i].get_decode_channel(), 0);
             idolInfo[i].second.clear();
         }
+        // Set control and volume
         parse_control_file(idolInfo, "res/" + currSong + "/controlsolo.txt", idolVol);
         fuzzy_adjust_vol_pan(idols[2].get_decode_channel(), idolInfo[2]);
         set_auto_vol_pan(idolInfo[2], idols[2].get_decode_channel());

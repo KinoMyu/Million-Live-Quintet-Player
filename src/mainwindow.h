@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <string>
 #include <QCheckBox>
+#include <QLabel>
 #include "HCAStreamChannel.h"
 #include "utils.h"
 #include "unordered_map"
@@ -22,6 +23,8 @@ public:
     void timerEvent(QTimerEvent *event);
     void updateControls();
     void setIdol(int index);
+    void updateUIPosition();
+    void updateIdolActivity();
 
 public slots:
     void setBGMVol(int value);
@@ -54,6 +57,7 @@ private:
     std::unordered_map<std::string, std::string> readableidol_to_filename, readablesong_to_filename;
     QComboBox* idolsel[NUM_IDOLS];
     QCheckBox* idolactivity[NUM_IDOLS];
+    QLabel* idolimg[NUM_IDOLS];
 };
 
 #endif // MAINWINDOW_H

@@ -19,10 +19,12 @@ public:
 	// 復号化
 	bool Decrypt(const char *filenameHCA);
 
-	// デコードしてWAVEファイルに保存
+    // Decode and place in memory, returning a pointer to the WAV data. Remember to free it when done. 16 bit only at the moment, but can easily be modified to support more bit depths.
     void* DecodeToMemory(size_t& sz, const char *filenameHCA, int mode = 16, int loop = 0);
-	bool DecodeToWavefile(const char *filenameHCA, const char *filenameWAV, float volume = 1, int mode = 16, int loop = 0);
     void* DecodeToMemoryStream(size_t& sz, void *fpHCA, int mode = 16, int loop = 0);
+
+    // デコードしてWAVEファイルに保存
+    bool DecodeToWavefile(const char *filenameHCA, const char *filenameWAV, float volume = 1, int mode = 16, int loop = 0);
 	bool DecodeToWavefileStream(void *fpHCA, const char *filenameWAV, float volume = 1, int mode = 16, int loop = 0);
 
 	// エンコードしてHCAファイルに保存
