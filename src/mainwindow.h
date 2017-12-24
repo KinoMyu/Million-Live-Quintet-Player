@@ -52,12 +52,13 @@ private:
     HCAStreamChannel bgm;
     HCAStreamChannel idols[NUM_IDOLS];
     ControlInfo idolInfo[NUM_IDOLS];
-    HSTREAM mix_stream;
+    HSTREAM mix_stream, idol_mix_stream;
     std::string currSong, currIdols[NUM_IDOLS];
     std::unordered_map<std::string, std::string> readableidol_to_filename, readablesong_to_filename;
     QComboBox* idolsel[NUM_IDOLS];
     QCheckBox* idolactivity[NUM_IDOLS];
     QLabel* idolimg[NUM_IDOLS];
+    QPixmap idolpixmap[NUM_IDOLS];
 };
 
 #endif // MAINWINDOW_H

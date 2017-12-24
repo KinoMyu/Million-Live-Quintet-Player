@@ -95,7 +95,7 @@ void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double&
 
 void parse_control_file(ControlInfo idolInfo[], const std::string & control_file, double& idolVol)
 {
-	double volTable[] = { 0.68, 0.57, 0.48, 0.425, 0.38 };
+    double volTable[] = { 0.75, 0.62, 0.53, 0.47, 0.42 };
     VolumePan idolvolpan[NUM_IDOLS];
     std::ifstream infilestream(control_file);
 	std::string line;
