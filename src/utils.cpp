@@ -100,6 +100,10 @@ void parse_control_file(ControlInfo idolInfo[], const std::string & control_file
     std::ifstream infilestream(control_file);
 	std::string line;
 	int position;
+    for(int i = 0; i < NUM_IDOLS; ++i)
+    {
+        idolInfo[i].second.clear();
+    }
     while (std::getline(infilestream, line))
 	{
 		std::istringstream iss(line);
