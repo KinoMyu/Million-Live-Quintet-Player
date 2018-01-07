@@ -7,7 +7,24 @@ class HCAStreamChannel
 {
 public:
 	HCAStreamChannel();
-	HCAStreamChannel(const HCAStreamChannel& other);
+    HCAStreamChannel(const HCAStreamChannel& other);
+    HCAStreamChannel& operator=(HCAStreamChannel&& other)
+    {
+        unload();
+        if (this != &other)
+        {
+            ptr = other.ptr;
+            size = other.size;
+            playback_channel = other.playback_channel;
+            decode_channel = other.decode_channel;
+            flags = other.flags;
+            other.ptr = nullptr;
+            other.size = 0;
+            other.playback_channel = 0;
+            other.decode_channel = 0;
+        }
+        return *this;
+    }
 	HCAStreamChannel(const std::string& filename);
 	~HCAStreamChannel();
 	void unload();

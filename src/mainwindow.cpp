@@ -39,9 +39,11 @@ MainWindow::MainWindow(QWidget *parent) :
     idolVol = 0.6;
     solo = false;
 
+    bgm = HCAStreamChannel();
     currSong = "";
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
+        idols[i] = HCAStreamChannel();
         currIdols[i] = "";
         idolimg[i]->setScaledContents(true);
     }
@@ -188,29 +190,11 @@ void MainWindow::setBGM(const QString& qStr)
     BASS_Mixer_StreamAddChannel(mix_stream, bgm.get_decode_channel(), 0);
     BASS_Mixer_ChannelSetPosition(bgm.get_decode_channel(), 0, BASS_POS_BYTE | BASS_POS_MIXER_RESET);
     BASS_ChannelSetAttribute(bgm.get_decode_channel(),BASS_ATTRIB_VOL,bgmVol);
-    for(int i = 0; i < NUM_IDOLS; ++i)
-    {
-        BASS_Mixer_ChannelRemove(idols[i].get_decode_channel());
-        idols[i].unload();
-        idols[i].load("res/" + currSong + "/" + currIdols[i] + ".hca");
-        idolInfo[i].second.clear();
-        if(solo && i != 2)
-        {
-            idols[i].destroy_channels();
-        }
-        else
-        {
-            BASS_Mixer_StreamAddChannel(idol_mix_stream, idols[i].get_decode_channel(), 0);
-        }
-    }
     parse_control_file(idolInfo, "res/" + currSong + "/control" + (solo?"solo":"") + ".txt", idolVol);
-    DWORD idoldecodechannels[NUM_IDOLS];
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
-        idoldecodechannels[i] = idols[i].get_decode_channel();
-
+        setIdol(i);
     }
-    set_auto_vol_pan_all(idolInfo, idoldecodechannels);
 }
 
 void MainWindow::setPosition(int value)
@@ -290,25 +274,27 @@ void MainWindow::setIdol(int index)
     QString filename = QString::fromStdString("res/img/" + currIdols[index] + ".png");
     idolpixmap[index] = QPixmap(filename);
     idolimg[index]->setPixmap(idolpixmap[index]);
-    // Cleanup wave and channel data
-    if(idols[index].get_decode_channel() != 0)
-    {
-        BASS_Mixer_ChannelRemove(idols[index].get_decode_channel());
-        idols[index].unload();
-    }
-    idols[index].load("res/" + currSong + "/" + currIdols[index] + ".hca");
+    DWORD oldchan = idols[index].get_decode_channel();
+    HCAStreamChannel&& hcastream = HCAStreamChannel();
+    hcastream.load("res/" + currSong + "/" + currIdols[index] + ".hca");
     if(solo && index != 2)
     {
-        idols[index].destroy_channels();
+        hcastream.destroy_channels();
     }
     else
     {
-        set_auto_vol_pan(idolInfo[index], idols[index].get_decode_channel());
+        set_auto_vol_pan(idolInfo[index], hcastream.get_decode_channel());
         DWORD position = BASS_ChannelGetPosition(bgm.get_decode_channel(), BASS_POS_BYTE);
-        BASS_ChannelSetPosition(idols[index].get_decode_channel(), position / 2, BASS_POS_BYTE);
-        fuzzy_adjust_vol_pan(idols[index].get_decode_channel(), idolInfo[index]);
-        BASS_Mixer_StreamAddChannel(idol_mix_stream, idols[index].get_decode_channel(), 0);
+        BASS_ChannelSetPosition(hcastream.get_decode_channel(), position / 2, BASS_POS_BYTE);
+        fuzzy_adjust_vol_pan(hcastream.get_decode_channel(), idolInfo[index]);
+        BASS_Mixer_StreamAddChannel(idol_mix_stream, hcastream.get_decode_channel(), 0);
     }
+    // Cleanup wave and channel data
+    if(oldchan != 0)
+    {
+        BASS_Mixer_ChannelRemove(oldchan);
+    }
+    idols[index] = std::move(hcastream);
 }
 
 void MainWindow::setUnit(bool checked)
