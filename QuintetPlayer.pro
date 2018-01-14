@@ -28,13 +28,16 @@ SOURCES += \
         src/mainwindow.cpp \
     src/clHCA.cpp \
     src/utils.cpp \
-    src/HCAStreamChannel.cpp
+    src/HCAStreamChannel.cpp \
+    src/HCADecodeService.cpp
 
 HEADERS += \
         src/mainwindow.h \
     src/clHCA.h \
     src/utils.h \
     src/HCAStreamChannel.h \
+    src/HCADecodeService.h \
+    src/Semaphore.h \
     bass/bass.h \
     bass/bassmix.h
 

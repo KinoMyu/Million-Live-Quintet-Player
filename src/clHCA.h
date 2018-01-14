@@ -1,105 +1,108 @@
 #pragma once
 
 //--------------------------------------------------
-// HCA(High Compression Audio)ã‚¯ãƒ©ã‚¹
+// HCA(High Compression Audio)ƒNƒ‰ƒX
 //--------------------------------------------------
 class clHCA {
 public:
 	clHCA(unsigned int ciphKey1 = 0xBC731A85, unsigned int ciphKey2 = 0x0002B875);
+	clHCA& operator=(clHCA&& other);
+	~clHCA();
 
-	// HCAãƒã‚§ãƒƒã‚¯
+	// HCAƒ`ƒFƒbƒN
 	static bool CheckFile(void *data, unsigned int size);
 
-	// ãƒã‚§ãƒƒã‚¯ã‚µãƒ 
+	// ƒ`ƒFƒbƒNƒTƒ€
 	static unsigned short CheckSum(void *data, int size, unsigned short sum = 0);
 
-	// ãƒ˜ãƒƒãƒ€æƒ…å ±ã‚’ã‚³ãƒ³ã‚½ãƒ¼ãƒ«å‡ºåŠ›
+	// ƒwƒbƒ_î•ñ‚ğƒRƒ“ƒ\[ƒ‹o—Í
 	bool PrintInfo(const char *filenameHCA);
 
-	// å¾©å·åŒ–
+	// •œ†‰»
 	bool Decrypt(const char *filenameHCA);
 
-    // Decode and place in memory, returning a pointer to the WAV data. Remember to free it when done. 16 bit only at the moment, but can easily be modified to support more bit depths.
-    void* DecodeToMemory(size_t& sz, const char *filenameHCA, int mode = 16, int loop = 0);
-    void* DecodeToMemoryStream(size_t& sz, void *fpHCA, int mode = 16, int loop = 0);
-
-    // ãƒ‡ã‚³ãƒ¼ãƒ‰ã—ã¦WAVEãƒ•ã‚¡ã‚¤ãƒ«ã«ä¿å­˜
-    bool DecodeToWavefile(const char *filenameHCA, const char *filenameWAV, float volume = 1, int mode = 16, int loop = 0);
+	// ƒfƒR[ƒh‚µ‚ÄWAVEƒtƒ@ƒCƒ‹‚É•Û‘¶
+	void* DecodeToMemory(size_t& sz, const char *filenameHCA, float volume = 1, int mode = 16, int loop = 0);
+	bool DecodeToWavefile(const char *filenameHCA, const char *filenameWAV, float volume = 1, int mode = 16, int loop = 0);
+	void* DecodeToMemoryStream(size_t& sz, void *fpHCA, float volume = 1, int mode = 16, int loop = 0);
 	bool DecodeToWavefileStream(void *fpHCA, const char *filenameWAV, float volume = 1, int mode = 16, int loop = 0);
 
-	// ã‚¨ãƒ³ã‚³ãƒ¼ãƒ‰ã—ã¦HCAãƒ•ã‚¡ã‚¤ãƒ«ã«ä¿å­˜
+	// ƒGƒ“ƒR[ƒh‚µ‚ÄHCAƒtƒ@ƒCƒ‹‚É•Û‘¶
 	//bool EncodeFromWavefile(const char *filenameWAV,const char *filenameHCA,float volume=1);
 	//bool EncodeFromWavefileStream(void *fpWAV,const char *filenameHCA,float volume=1);
+	unsigned int get_channelCount() const;
+	unsigned int get_blockCount() const;
+	unsigned int get_blockSize() const;
 
 private:
-	struct stHeader {//ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ± (å¿…é ˆ)
+	struct stHeader {//ƒtƒ@ƒCƒ‹î•ñ (•K{)
 		unsigned int hca;              // 'HCA'
-		unsigned short version;        // ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã€‚v1.3ã¨v2.0ã®å­˜åœ¨ã‚’ç¢ºèª
-		unsigned short dataOffset;     // ãƒ‡ãƒ¼ã‚¿ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+		unsigned short version;        // ƒo[ƒWƒ‡ƒ“Bv1.3‚Æv2.0‚Ì‘¶İ‚ğŠm”F
+		unsigned short dataOffset;     // ƒf[ƒ^ƒIƒtƒZƒbƒg
 	};
-	struct stFormat {//ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæƒ…å ± (å¿…é ˆ)
+	struct stFormat {//ƒtƒH[ƒ}ƒbƒgî•ñ (•K{)
 		unsigned int fmt;              // 'fmt'
-		unsigned int channelCount : 8;   // ãƒãƒ£ãƒ³ãƒãƒ«æ•° 1ï½16
-		unsigned int samplingRate : 24;  // ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ãƒ¬ãƒ¼ãƒˆ 1ï½0x7FFFFF
-		unsigned int blockCount;       // ãƒ–ãƒ­ãƒƒã‚¯æ•° 0ä»¥ä¸Š
-		unsigned short muteHeader;     // å…ˆé ­ã®ç„¡éŸ³éƒ¨åˆ†(ãƒ–ãƒ­ãƒƒã‚¯æ•°*0x400+0x80)
-		unsigned short muteFooter;     // æœ«å°¾ã®ç„¡éŸ³ã‚µãƒ³ãƒ—ãƒ«æ•°
+		unsigned int channelCount : 8;   // ƒ`ƒƒƒ“ƒlƒ‹” 1`16
+		unsigned int samplingRate : 24;  // ƒTƒ“ƒvƒŠƒ“ƒOƒŒ[ƒg 1`0x7FFFFF
+		unsigned int blockCount;       // ƒuƒƒbƒN” 0ˆÈã
+		unsigned short muteHeader;     // æ“ª‚Ì–³‰¹•”•ª(ƒuƒƒbƒN”*0x400+0x80)
+		unsigned short muteFooter;     // ––”ö‚Ì–³‰¹ƒTƒ“ƒvƒ‹”
 	};
-	struct stCompress {//åœ§ç¸®æƒ…å ± (åœ§ç¸®æƒ…å ±ã‹ãƒ‡ã‚³ãƒ¼ãƒ‰æƒ…å ±ã®ã©ã¡ã‚‰ã‹ä¸€ã¤ãŒå¿…é ˆ)
+	struct stCompress {//ˆ³kî•ñ (ˆ³kî•ñ‚©ƒfƒR[ƒhî•ñ‚Ì‚Ç‚¿‚ç‚©ˆê‚Â‚ª•K{)
 		unsigned int comp;             // 'comp'
-		unsigned short blockSize;      // ãƒ–ãƒ­ãƒƒã‚¯ã‚µã‚¤ã‚º(CBRã®ã¨ãã«æœ‰åŠ¹ï¼Ÿ) 8ï½0xFFFFã€0ã®ã¨ãã¯VBR
-		unsigned char r01;             // ä¸æ˜(1) 0ï½r02      v2.0ç¾åœ¨1ã®ã¿å¯¾å¿œ
-		unsigned char r02;             // ä¸æ˜(15) r01ï½0x1F  v2.0ç¾åœ¨15ã®ã¿å¯¾å¿œ
-		unsigned char r03;             // ä¸æ˜(1)(1)
-		unsigned char r04;             // ä¸æ˜(1)(0)
-		unsigned char r05;             // ä¸æ˜(0x80)(0x80)
-		unsigned char r06;             // ä¸æ˜(0x80)(0x20)
-		unsigned char r07;             // ä¸æ˜(0)(0x20)
-		unsigned char r08;             // ä¸æ˜(0)(8)
-		unsigned char reserve1;        // äºˆç´„
-		unsigned char reserve2;        // äºˆç´„
+		unsigned short blockSize;      // ƒuƒƒbƒNƒTƒCƒY(CBR‚Ì‚Æ‚«‚É—LŒøH) 8`0xFFFFA0‚Ì‚Æ‚«‚ÍVBR
+		unsigned char r01;             // •s–¾(1) 0`r02      v2.0Œ»İ1‚Ì‚İ‘Î‰
+		unsigned char r02;             // •s–¾(15) r01`0x1F  v2.0Œ»İ15‚Ì‚İ‘Î‰
+		unsigned char r03;             // •s–¾(1)(1)
+		unsigned char r04;             // •s–¾(1)(0)
+		unsigned char r05;             // •s–¾(0x80)(0x80)
+		unsigned char r06;             // •s–¾(0x80)(0x20)
+		unsigned char r07;             // •s–¾(0)(0x20)
+		unsigned char r08;             // •s–¾(0)(8)
+		unsigned char reserve1;        // —\–ñ
+		unsigned char reserve2;        // —\–ñ
 	};
-	struct stDecode {//ãƒ‡ã‚³ãƒ¼ãƒ‰æƒ…å ± (åœ§ç¸®æƒ…å ±ã‹ãƒ‡ã‚³ãƒ¼ãƒ‰æƒ…å ±ã®ã©ã¡ã‚‰ã‹ä¸€ã¤ãŒå¿…é ˆ)
+	struct stDecode {//ƒfƒR[ƒhî•ñ (ˆ³kî•ñ‚©ƒfƒR[ƒhî•ñ‚Ì‚Ç‚¿‚ç‚©ˆê‚Â‚ª•K{)
 		unsigned int dec;              // 'dec'
-		unsigned short blockSize;      // ãƒ–ãƒ­ãƒƒã‚¯ã‚µã‚¤ã‚º(CBRã®ã¨ãã«æœ‰åŠ¹ï¼Ÿ) 8ï½0xFFFFã€0ã®ã¨ãã¯VBR
-		unsigned char r01;             // ä¸æ˜(1) 0ï½r02      v2.0ç¾åœ¨1ã®ã¿å¯¾å¿œ
-		unsigned char r02;             // ä¸æ˜(15) r01ï½0x1F  v2.0ç¾åœ¨15ã®ã¿å¯¾å¿œ
-		unsigned char count1;          // type0ã¨type1ã®æ•°-1
-		unsigned char count2;          // type2ã®æ•°-1
-		unsigned char r03 : 4;           // ä¸æ˜(0)
-		unsigned char r04 : 4;           // ä¸æ˜(0) 0ã¯1ã«ä¿®æ­£ã•ã‚Œã‚‹
-		unsigned char enableCount2;    // count2ã‚’ä½¿ã†ãƒ•ãƒ©ã‚°
+		unsigned short blockSize;      // ƒuƒƒbƒNƒTƒCƒY(CBR‚Ì‚Æ‚«‚É—LŒøH) 8`0xFFFFA0‚Ì‚Æ‚«‚ÍVBR
+		unsigned char r01;             // •s–¾(1) 0`r02      v2.0Œ»İ1‚Ì‚İ‘Î‰
+		unsigned char r02;             // •s–¾(15) r01`0x1F  v2.0Œ»İ15‚Ì‚İ‘Î‰
+		unsigned char count1;          // type0‚Ætype1‚Ì”-1
+		unsigned char count2;          // type2‚Ì”-1
+		unsigned char r03 : 4;           // •s–¾(0)
+		unsigned char r04 : 4;           // •s–¾(0) 0‚Í1‚ÉC³‚³‚ê‚é
+		unsigned char enableCount2;    // count2‚ğg‚¤ƒtƒ‰ƒO
 	};
-	struct stVBR {//å¯å¤‰ãƒ“ãƒƒãƒˆãƒ¬ãƒ¼ãƒˆæƒ…å ± (å»ƒæ­¢ï¼Ÿ)
+	struct stVBR {//‰Â•ÏƒrƒbƒgƒŒ[ƒgî•ñ (”p~H)
 		unsigned int vbr;              // 'vbr'
-		unsigned short r01;            // ä¸æ˜ 0ï½0x1FF
-		unsigned short r02;            // ä¸æ˜
+		unsigned short r01;            // •s–¾ 0`0x1FF
+		unsigned short r02;            // •s–¾
 	};
-	struct stATH {//ATHãƒ†ãƒ¼ãƒ–ãƒ«æƒ…å ± (v2.0ã‹ã‚‰å»ƒæ­¢ï¼Ÿ)
+	struct stATH {//ATHƒe[ƒuƒ‹î•ñ (v2.0‚©‚ç”p~H)
 		unsigned int ath;              // 'ath'
-		unsigned short type;           // ãƒ†ãƒ¼ãƒ–ãƒ«ã®ç¨®é¡(0:å…¨ã¦0 1:ãƒ†ãƒ¼ãƒ–ãƒ«1)
+		unsigned short type;           // ƒe[ƒuƒ‹‚Ìí—Ş(0:‘S‚Ä0 1:ƒe[ƒuƒ‹1)
 	};
-	struct stLoop {//ãƒ«ãƒ¼ãƒ—æƒ…å ±
+	struct stLoop {//ƒ‹[ƒvî•ñ
 		unsigned int loop;             // 'loop'
-		unsigned int start;            // ãƒ«ãƒ¼ãƒ—é–‹å§‹ãƒ–ãƒ­ãƒƒã‚¯ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ 0ï½loopEnd
-		unsigned int end;              // ãƒ«ãƒ¼ãƒ—çµ‚äº†ãƒ–ãƒ­ãƒƒã‚¯ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ loopStartï½(stFormat::blockCount-1)
-		unsigned short count;          // ãƒ«ãƒ¼ãƒ—å›æ•° 0x80ã§ç„¡é™ãƒ«ãƒ¼ãƒ—
-		unsigned short r01;            // ä¸æ˜(0x226) 
+		unsigned int start;            // ƒ‹[ƒvŠJnƒuƒƒbƒNƒCƒ“ƒfƒbƒNƒX 0`loopEnd
+		unsigned int end;              // ƒ‹[ƒvI—¹ƒuƒƒbƒNƒCƒ“ƒfƒbƒNƒX loopStart`(stFormat::blockCount-1)
+		unsigned short count;          // ƒ‹[ƒv‰ñ” 0x80‚Å–³ŒÀƒ‹[ƒv
+		unsigned short r01;            // •s–¾(0x226) 
 	};
-	struct stCipher {//æš—å·ãƒ†ãƒ¼ãƒ–ãƒ«æƒ…å ±
+	struct stCipher {//ˆÃ†ƒe[ƒuƒ‹î•ñ
 		unsigned int ciph;             // 'ciph'
-		unsigned short type;           // æš—å·åŒ–ã®ç¨®é¡(0:æš—å·åŒ–ãªã— 1:éµãªã—æš—å·åŒ– 0x38:éµã‚ã‚Šæš—å·åŒ–)
+		unsigned short type;           // ˆÃ†‰»‚Ìí—Ş(0:ˆÃ†‰»‚È‚µ 1:Œ®‚È‚µˆÃ†‰» 0x38:Œ®‚ ‚èˆÃ†‰»)
 	};
-	struct stRVA {//ç›¸å¯¾ãƒœãƒªãƒ¥ãƒ¼ãƒ èª¿ç¯€æƒ…å ±
+	struct stRVA {//‘Š‘Îƒ{ƒŠƒ…[ƒ€’²ßî•ñ
 		unsigned int rva;              // 'rva'
-		float volume;                  // ãƒœãƒªãƒ¥ãƒ¼ãƒ 
+		float volume;                  // ƒ{ƒŠƒ…[ƒ€
 	};
-	struct stComment {//ã‚³ãƒ¡ãƒ³ãƒˆæƒ…å ±
+	struct stComment {//ƒRƒƒ“ƒgî•ñ
 		unsigned int comm;             // 'comm'
-		unsigned char len;             // ã‚³ãƒ¡ãƒ³ãƒˆã®é•·ã•ï¼Ÿ
+		unsigned char len;             // ƒRƒƒ“ƒg‚Ì’·‚³H
 									   //char comment[];
 	};
-	struct stPadding {//ãƒ‘ãƒ‡ã‚£ãƒ³ã‚°
+	struct stPadding {//ƒpƒfƒBƒ“ƒO
 		unsigned int pad;              // 'pad'
 	};
 	unsigned int _version;
@@ -166,6 +169,7 @@ private:
 		int _size;
 		int _bit;
 	};
+	public:
 	struct stChannel {
 		float block[0x80];
 		float base[0x80];
@@ -184,7 +188,13 @@ private:
 		void Decode3(unsigned int a, unsigned int b, unsigned int c, unsigned int d);
 		void Decode4(int index, unsigned int a, unsigned int b, unsigned int c);
 		void Decode5(int index);
-	}_channel[0x10];
+	};
+	bool PrepDecode(stChannel* channels, unsigned int numthreads);
+	bool Analyze(void*& wavptr, size_t& sz, const char* filenameHCA);
+	void AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, unsigned char* outputwavptr);
+	private:
+	stChannel _channel[0x10];
+	unsigned char* hcafileptr;
 	bool Decode(void *data, unsigned int size, unsigned int address);
 	bool DecodeToMemory_Decode(void *fp1, unsigned int address, unsigned int count, void *data, void *modeFunction, void* ptr, int& seekhead);
 	bool DecodeToWavefile_Decode(void *fp1, void *fp2, unsigned int address, unsigned int count, void *data, void *modeFunction);

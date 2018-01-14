@@ -5,6 +5,7 @@
 #include "clHCA.h"
 #include <stdio.h>
 #include <memory.h>
+#include <utility>
 
 //--------------------------------------------------
 // インライン関数
@@ -22,7 +23,60 @@ inline unsigned int ceil2(unsigned int a, unsigned int b) { return (b>0) ? (a / 
 // コンストラクタ
 //--------------------------------------------------
 clHCA::clHCA(unsigned int ciphKey1, unsigned int ciphKey2) :
-	_ciph_key1(ciphKey1), _ciph_key2(ciphKey2), _ath(), _cipher() {}
+	_ciph_key1(ciphKey1), _ciph_key2(ciphKey2), _ath(), _cipher() {
+	hcafileptr = nullptr;
+}
+
+clHCA & clHCA::operator=(clHCA && other)
+{
+    if(hcafileptr != nullptr)
+    {
+        delete[] hcafileptr;
+    }
+	hcafileptr = other.hcafileptr;
+	other.hcafileptr = nullptr;
+	_version = other._version;
+	_dataOffset = other._dataOffset;
+	_channelCount = other._channelCount;
+	_samplingRate = other._samplingRate;
+	_blockCount = other._blockCount;
+	_muteHeader = other._muteHeader;
+	_muteFooter = other._muteFooter;
+	_blockSize = other._blockSize;
+	_comp_r01 = other._comp_r01;
+	_comp_r02 = other._comp_r02;
+	_comp_r03 = other._comp_r03;
+	_comp_r04 = other._comp_r04;
+	_comp_r05 = other._comp_r05;
+	_comp_r06 = other._comp_r06;
+	_comp_r07 = other._comp_r07;
+	_comp_r08 = other._comp_r08;
+	_comp_r09 = other._comp_r09;
+	_vbr_r01 = other._vbr_r01;
+	_vbr_r02 = other._vbr_r02;
+	_ath_type = other._ath_type;
+	_loopStart = other._loopStart;
+	_loopEnd = other._loopEnd;
+	_loopCount = other._loopCount;
+	_loop_r01 = other._loop_r01;
+	_loopFlg = other._loopFlg;
+	_ciph_type = other._ciph_type;
+	_ciph_key1 = other._ciph_key1;
+	_ciph_key2 = other._ciph_key2;
+	_rva_volume = other._rva_volume;
+	_comm_len = other._comm_len;
+	_ath = other._ath;
+	_cipher = other._cipher;
+	return *this;
+}
+
+clHCA::~clHCA()
+{
+	if (hcafileptr != nullptr)
+    {
+		delete[] hcafileptr;
+	}
+}
 
 //--------------------------------------------------
 // HCAチェック
@@ -455,6 +509,171 @@ bool clHCA::Decrypt(const char *filenameHCA) {
 
 	return true;
 }
+//--------------------------------------------------
+// Analyze and store information about HCA
+//-------------------------------------------------
+bool clHCA::Analyze(void*& wavptr, size_t& sz, const char* filenameHCA)
+{
+	wavptr = nullptr;
+	sz = 0;
+	// チェック
+	if (!(filenameHCA))return false;
+
+	// HCAファイルを開く
+	FILE *fp;
+	if (fopen_s(&fp, filenameHCA, "rb"))return false;
+
+	// Analyze
+
+	// チェック
+	int mode = 16;
+	int loop = 0;
+	if (!(fp && (mode == 0 || mode == 8 || mode == 16 || mode == 24 || mode == 32) && loop >= 0))
+	{
+		fclose(fp);
+		return false;
+	}
+
+	// 
+	FILE *fp1 = (FILE *)fp;
+	unsigned int address = ftell(fp1);
+
+	// ヘッダチェック
+	stHeader header;
+	memset(&header, 0, sizeof(header));
+	fread(&header, sizeof(header), 1, fp1);
+	if (!CheckFile(&header, sizeof(header)))
+	{
+		fclose(fp);
+		return false;
+	}
+
+	// ヘッダ解析
+	header.dataOffset = bswap(header.dataOffset);
+	unsigned char *data1 = new unsigned char[header.dataOffset];
+	if (!data1) { fclose(fp1); return false; }
+	fseek(fp1, address, SEEK_SET);
+	fread(data1, header.dataOffset, 1, fp1);
+	if (!Decode(data1, header.dataOffset, 0)) { delete[] data1;
+	fclose(fp); return false; }
+
+	// WAVEヘッダを書き込み
+	struct stWAVEHeader {
+		char riff[4];
+		unsigned int riffSize;
+		char wave[4];
+		char fmt[4];
+		unsigned int fmtSize;
+		unsigned short fmtType;
+		unsigned short fmtChannelCount;
+		unsigned int fmtSamplingRate;
+		unsigned int fmtSamplesPerSec;
+		unsigned short fmtSamplingSize;
+		unsigned short fmtBitCount;
+	}wavRiff = { 'R','I','F','F',0,'W','A','V','E','f','m','t',' ',0x10,0,0,0,0,0,0 };
+	struct stWAVEsmpl {
+		char smpl[4];
+		unsigned int smplSize;
+		unsigned int manufacturer;
+		unsigned int product;
+		unsigned int samplePeriod;
+		unsigned int MIDIUnityNote;
+		unsigned int MIDIPitchFraction;
+		unsigned int SMPTEFormat;
+		unsigned int SMPTEOffset;
+		unsigned int sampleLoops;
+		unsigned int samplerData;
+		unsigned int loop_Identifier;
+		unsigned int loop_Type;
+		unsigned int loop_Start;
+		unsigned int loop_End;
+		unsigned int loop_Fraction;
+		unsigned int loop_PlayCount;
+	}wavSmpl = { 's','m','p','l',0x3C,0,0,0,0x3C,0,0,0,1,0x18,0,0,0,0,0,0 };
+	struct stWAVEnote {
+		char note[4];
+		unsigned int noteSize;
+		unsigned int dwName;
+	}wavNote = { 'n','o','t','e',0,0 };
+	struct stWAVEdata {
+		char data[4];
+		unsigned int dataSize;
+	}wavData = { 'd','a','t','a',0 };
+	wavRiff.fmtType = (mode>0) ? 1 : 3;
+	wavRiff.fmtChannelCount = _channelCount;
+	wavRiff.fmtBitCount = (mode>0) ? mode : 32;
+	wavRiff.fmtSamplingRate = _samplingRate;
+	wavRiff.fmtSamplingSize = wavRiff.fmtBitCount / 8 * wavRiff.fmtChannelCount;
+	wavRiff.fmtSamplesPerSec = wavRiff.fmtSamplingRate*wavRiff.fmtSamplingSize;
+	if (_loopFlg) {
+		wavSmpl.samplePeriod = (unsigned int)(1 / (double)wavRiff.fmtSamplingRate * 1000000000);
+		wavSmpl.loop_Start = _loopStart * 0x80 * 8 + _muteFooter;//※計算方法不明
+		wavSmpl.loop_End = (_loopEnd + 1) * 0x80 * 8 - 1;//※計算方法不明
+		wavSmpl.loop_PlayCount = (_loopCount == 0x80) ? 0 : _loopCount;
+	}
+	else if (loop) {
+		wavSmpl.loop_Start = 0;
+		wavSmpl.loop_End = (_blockCount + 1) * 0x80 * 8 - 1;//※計算方法不明
+		_loopStart = 0;
+		_loopEnd = _blockCount;
+	}
+	if (_comm_comment) {
+		wavNote.noteSize = 4 + _comm_len + 1;
+		if (wavNote.noteSize & 3)wavNote.noteSize += 4 - (wavNote.noteSize & 3);
+	}
+	wavData.dataSize = _blockCount * 0x80 * 8 * wavRiff.fmtSamplingSize + (wavSmpl.loop_End - wavSmpl.loop_Start)*loop;
+	wavRiff.riffSize = 0x1C + ((_loopFlg && !loop) ? sizeof(wavSmpl) : 0) + (_comm_comment ? 8 + wavNote.noteSize : 0) + sizeof(wavData) + wavData.dataSize;
+
+	sz = _blockCount * 8 * 128 * _channelCount * 2 + sizeof(wavRiff) + sizeof(wavData);
+	wavptr = new char[sz];
+	memset(wavptr, 0, sz);
+	int seekhead = 0;
+	for (int i = 0; i < sizeof(wavRiff); ++i)
+	{
+		((char*)wavptr)[seekhead++] = ((char*)&wavRiff)[i];
+	}
+	for (int i = 0; i < sizeof(wavData); ++i)
+	{
+		((char*)wavptr)[seekhead++] = ((char*)(&wavData))[i];
+	}
+	delete[] data1;
+	hcafileptr = new unsigned char[_blockCount * _blockSize];
+	fread(hcafileptr, _blockCount, _blockSize, fp1);
+	// 閉じる
+	fclose(fp);
+	return true;
+}
+
+void clHCA::AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, unsigned char* outputwavptr)
+{
+	int seekhead = 0;
+	outputwavptr += 2 * blocknum * 8 * 128 * _channelCount + 44;
+	unsigned char* data = (unsigned char*)hcafileptr + (blocknum * _blockSize);
+	//		if(((unsigned char *)data)[_blockSize-2]==0x5E)_asm int 3
+	_cipher.Mask(data, _blockSize);
+	clData d(data, _blockSize);
+	int magic = d.GetBit(16);//0xFFFF固定
+	if (magic == 0xFFFF) {
+		int a = (d.GetBit(9) << 8) - d.GetBit(7);
+		for (unsigned int i = 0; i<_channelCount; i++)channelsOffset[i].Decode1(&d, _comp_r09, a, _ath.GetTable());
+		for (int i = 0; i<8; i++) {
+			for (unsigned int j = 0; j<_channelCount; j++)channelsOffset[j].Decode2(&d);
+			for (unsigned int j = 0; j<_channelCount; j++)channelsOffset[j].Decode3(_comp_r09, _comp_r08, _comp_r07 + _comp_r06, _comp_r05);
+			for (unsigned int j = 0; j<_channelCount - 1; j++)channelsOffset[j].Decode4(i, _comp_r05 - _comp_r06, _comp_r06, _comp_r07);
+			for (unsigned int j = 0; j<_channelCount; j++)channelsOffset[j].Decode5(i);
+		}
+	}
+	for (int i = 0; i<8; i++) {
+		for (int j = 0; j<0x80; j++) {
+			for (unsigned int k = 0; k<_channelCount; k++) {
+				float f = channelsOffset[k].wave[i][j];
+				if (f>1) { f = 1; }
+				else if (f<-1) { f = -1; }
+				DecodeToMemory_DecodeMode16bit(f, outputwavptr, seekhead);
+			}
+		}
+	}
+}
 
 //--------------------------------------------------
 // デコードしてWAVEファイルに保存
@@ -476,18 +695,18 @@ bool clHCA::DecodeToWavefile(const char *filenameHCA, const char *filenameWAV, f
 
 	return true;
 }
-void* clHCA::DecodeToMemory(size_t& sz, const char *filenameHCA, int mode, int loop) {
+void* clHCA::DecodeToMemory(size_t& sz, const char *filenameHCA, float volume, int mode, int loop) {
 
-	void* ptr = NULL;
+	void* ptr = nullptr;
 	// チェック
-	if (!(filenameHCA))return NULL;
+	if (!(filenameHCA))return nullptr;
 
 	// HCAファイルを開く
 	FILE *fp;
-	if (fopen_s(&fp, filenameHCA, "rb"))return NULL;
+	if (fopen_s(&fp, filenameHCA, "rb"))return nullptr;
 
 	// 保存
-    ptr = DecodeToMemoryStream(sz, fp, mode, loop);
+	ptr = DecodeToMemoryStream(sz, fp, volume, mode, loop);
 
 	// 閉じる
 	fclose(fp);
@@ -495,7 +714,7 @@ void* clHCA::DecodeToMemory(size_t& sz, const char *filenameHCA, int mode, int l
 	return ptr;
 }
 
-void* clHCA::DecodeToMemoryStream(size_t& sz, void *fpHCA, int mode, int loop) {
+void* clHCA::DecodeToMemoryStream(size_t& sz, void *fpHCA, float volume, int mode, int loop) {
 
 	// チェック
 	if (!(fpHCA && (mode == 0 || mode == 8 || mode == 16 || mode == 24 || mode == 32) && loop >= 0))return NULL;
@@ -794,6 +1013,18 @@ bool clHCA::DecodeToWavefileStream(void *fpHCA, const char *filenameWAV, float v
 	fclose(fp2);
 
 	return true;
+}
+unsigned int clHCA::get_channelCount() const
+{
+	return _channelCount;
+}
+unsigned int clHCA::get_blockCount() const
+{
+	return _blockCount;
+}
+unsigned int clHCA::get_blockSize() const
+{
+	return _blockSize;
 }
 bool clHCA::DecodeToWavefile_Decode(void *fp1, void *fp2, unsigned int address, unsigned int count, void *data, void *modeFunction) {
 	float f;
@@ -1259,6 +1490,36 @@ bool clHCA::Decode(void *data, unsigned int size, unsigned int address) {
 	return true;
 }
 
+bool clHCA::PrepDecode(stChannel* channels, unsigned int numthreads)
+{
+	memset(channels, 0, sizeof(stChannel) * numthreads * _channelCount);
+	if (!(_comp_r01 == 1 && _comp_r02 == 15))return false;
+	_comp_r09 = ceil2(_comp_r05 - (_comp_r06 + _comp_r07), _comp_r08);
+	char r[0x10]; memset(r, 0, sizeof(r));
+	unsigned int b = _channelCount / _comp_r03;
+	if (_comp_r07&&b>1) {
+		char *c = r;
+		for (unsigned int i = 0; i<_comp_r03; i++, c += b) {
+			switch (b) {
+			case 2:c[0] = 1; c[1] = 2; break;
+			case 3:c[0] = 1; c[1] = 2; break;
+			case 4:c[0] = 1; c[1] = 2; if (_comp_r04 == 0) { c[2] = 1; c[3] = 2; }break;
+			case 5:c[0] = 1; c[1] = 2; if (_comp_r04 <= 2) { c[3] = 1; c[4] = 2; }break;
+			case 6:c[0] = 1; c[1] = 2; c[4] = 1; c[5] = 2; break;
+			case 7:c[0] = 1; c[1] = 2; c[4] = 1; c[5] = 2; break;
+			case 8:c[0] = 1; c[1] = 2; c[4] = 1; c[5] = 2; c[6] = 1; c[7] = 2; break;
+			}
+		}
+	}
+	for (unsigned int i = 0; i < _channelCount * numthreads; i++)
+	{
+		channels[i].type = r[i % _channelCount];
+		channels[i].value3 = &channels[i].value[_comp_r06 + _comp_r07];
+		channels[i].count = _comp_r06 + ((r[i % _channelCount] != 2) ? _comp_r07 : 0);
+	}
+	return true;
+}
+
 //--------------------------------------------------
 // デコード第一段階
 //   ベースデータの読み込み
@@ -1643,8 +1904,8 @@ void clHCA::stChannel::Decode5(int index) {
 		}
 		float *w = s; s = d; d = w;
 	}
-	d = wav2;
-	for (int i = 0; i<0x80; i++)*(d++) = *(s++);
+	memcpy(wav2, s, 0x80 * sizeof(float));
+	//for (int i = 0; i<0x80; i++)*(d++) = *(s++);
 	s = (float *)list3Int; d = wave[index];
 	s1 = &wav2[0x40]; s2 = wav3;
 	for (int i = 0; i<0x40; i++)*(d++) = *(s1++)**(s++) + *(s2++);

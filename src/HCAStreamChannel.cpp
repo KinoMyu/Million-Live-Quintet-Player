@@ -3,8 +3,9 @@
 
 
 
-HCAStreamChannel::HCAStreamChannel()
+HCAStreamChannel::HCAStreamChannel(HCADecodeService* dec)
 {
+	this->dec = dec;
 	this->flags = 0;
 	ptr = nullptr;
 	size = 0;
@@ -16,7 +17,7 @@ HCAStreamChannel::HCAStreamChannel(const HCAStreamChannel& other)
 {
 	if (other.ptr == nullptr)
 	{
-		HCAStreamChannel();
+		HCAStreamChannel(nullptr);
 		return;
 	}
 	size = other.size;
@@ -25,10 +26,11 @@ HCAStreamChannel::HCAStreamChannel(const HCAStreamChannel& other)
 	__load();
 }
 
-HCAStreamChannel::HCAStreamChannel(const std::string& filename)
+HCAStreamChannel::HCAStreamChannel(HCADecodeService* dec, const std::string& filename)
 {
+	this->dec = dec;
 	this->flags = 0;
-	load(filename);
+    load(filename, 0);
 }
 
 
@@ -37,18 +39,47 @@ HCAStreamChannel::~HCAStreamChannel()
 	unload();
 }
 
+HCAStreamChannel& HCAStreamChannel::operator=(HCAStreamChannel&& other)
+{
+    unload();
+    if (this != &other)
+    {
+        ptr = other.ptr;
+        size = other.size;
+        playback_channel = other.playback_channel;
+        decode_channel = other.decode_channel;
+        flags = other.flags;
+        other.ptr = nullptr;
+        other.size = 0;
+        other.playback_channel = 0;
+        other.decode_channel = 0;
+    }
+    return *this;
+}
+
 void HCAStreamChannel::unload()
 {
-    destroy_channels();
+	dec->cancel_decode(ptr);
+	if (playback_channel != 0) { BASS_ChannelStop(playback_channel); playback_channel = 0; }
+	if (decode_channel != 0) { BASS_ChannelStop(decode_channel); decode_channel = 0; }
 	if (ptr != nullptr) { delete[] ptr; ptr = nullptr; }
 	size = 0;
 }
 
 bool HCAStreamChannel::load(const std::string& filename)
 {
-	clHCA hca(0xBC731A85, 0x0002B875);
-	ptr = hca.DecodeToMemory(size, filename.c_str());
+    auto pair = dec->decode(filename, 0);
+	ptr = pair.first;
+	size = pair.second;
 	return __load();
+}
+
+bool HCAStreamChannel::load(const std::string& filename, DWORD samplenum)
+{
+    auto pair = dec->decode(filename, samplenum);
+    ptr = pair.first;
+    size = pair.second;
+    return __load();
 }
 
 bool HCAStreamChannel::__load()
@@ -58,18 +89,28 @@ bool HCAStreamChannel::__load()
 		playback_channel = 0;
 		decode_channel = 0;
 		return false;
-    }
-    make_channels();
-    if (playback_channel == 0 || decode_channel == 0)
+	}
+	playback_channel = BASS_StreamCreateFile(TRUE, ptr, 0, size, flags);
+	if (playback_channel == 0)
 	{
-        destroy_channels();
+        dec->cancel_decode(ptr);
 		delete[] ptr;
 		ptr = nullptr;
-        playback_channel = 0;
 		decode_channel = 0;
 		size = 0;
 		return false;
-    }
+	}
+	decode_channel = BASS_StreamCreateFile(TRUE, ptr, 0, size, flags | BASS_STREAM_DECODE);
+	if (decode_channel == 0)
+	{
+        dec->cancel_decode(ptr);
+		delete[] ptr;
+		ptr = nullptr;
+		BASS_ChannelStop(playback_channel);
+		playback_channel = 0;
+		size = 0;
+		return false;
+	}
 	return true;
 }
 

@@ -5,9 +5,10 @@
 #include <string>
 #include <QCheckBox>
 #include <QLabel>
+#include <unordered_map>
 #include "HCAStreamChannel.h"
 #include "utils.h"
-#include "unordered_map"
+#include "HCADecodeService.h"
 
 namespace Ui {
 class MainWindow;
@@ -49,8 +50,8 @@ private:
     double idolVol;
     int updateTimerId;
     bool solo;
-    HCAStreamChannel bgm;
-    HCAStreamChannel idols[NUM_IDOLS];
+    HCAStreamChannel* bgm;
+    HCAStreamChannel* idols[NUM_IDOLS];
     ControlInfo idolInfo[NUM_IDOLS];
     HSTREAM mix_stream, idol_mix_stream;
     std::string currSong, currIdols[NUM_IDOLS];
@@ -59,6 +60,7 @@ private:
     QCheckBox* idolactivity[NUM_IDOLS];
     QLabel* idolimg[NUM_IDOLS];
     QPixmap idolpixmap[NUM_IDOLS];
+    HCADecodeService dec;
 };
 
 #endif // MAINWINDOW_H
