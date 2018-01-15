@@ -1,8 +1,6 @@
 #include "HCAStreamChannel.h"
 #include "clHCA.h"
 
-
-
 HCAStreamChannel::HCAStreamChannel(HCADecodeService* dec)
 {
 	this->dec = dec;
