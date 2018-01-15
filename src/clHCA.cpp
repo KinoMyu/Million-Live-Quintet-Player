@@ -652,10 +652,10 @@ void clHCA::AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, void*&
     int x = (blocknum == 0) ? 0 : -1;
     for (; x < (int)chunksize && blocknum + x < _blockCount; ++x)
     {
-        if(outputwavptr == nullptr) return;
+        if(outputwavptr == nullptr) break;
         wavoutsem.wait();
         memcpy(data, (unsigned char*)hcafileptr + ((blocknum + x) * _blockSize), _blockSize);
-        //		if(((unsigned char *)data)[_blockSize-2]==0x5E)_asm int 3
+        //        if(((unsigned char *)data)[_blockSize-2]==0x5E)_asm int 3
         _cipher.Mask(data, _blockSize);
         clData d(data, _blockSize);
         int magic = d.GetBit(16);//0xFFFF???
@@ -1481,7 +1481,7 @@ bool clHCA::Decode(void *data, unsigned int size, unsigned int address) {
     else if (address >= _dataOffset) {
         if (size<_blockSize)return false;
         if (CheckSum(data, _blockSize))return false;
-        //		if(((unsigned char *)data)[_blockSize-2]==0x5E)_asm int 3
+        //        if(((unsigned char *)data)[_blockSize-2]==0x5E)_asm int 3
         _cipher.Mask(data, _blockSize);
         clData d(data, _blockSize);
         int magic = d.GetBit(16);//0xFFFF???

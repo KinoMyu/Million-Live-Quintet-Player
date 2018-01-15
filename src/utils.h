@@ -7,8 +7,8 @@
 
 struct VolumePan
 {
-	double vol;
-	double pan;
+    double vol;
+    double pan;
 };
 
 typedef std::pair<double*, std::map<DWORD, VolumePan>> ControlInfo;
