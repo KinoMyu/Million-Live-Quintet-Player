@@ -3,25 +3,20 @@
 #include "HCADecodeService.h"
 #include "clHCA.h"
 
-// Currently multithreaded decode is bugged, please use single thread for now
+// Currently multithreaded decode is bugged due to out of order decoding
 HCADecodeService::HCADecodeService(unsigned int numthreads)
-    : mainsem(numthreads),
+    : mainsem(1),
+      numthreads{1}, // Use single thread for now
       datasem{ 0 },
+      finsem{0},
       numchannels{0},
       workingrequest{nullptr},
       channels{nullptr},
       shutdown{false}
 {
-    if(numthreads > 0)
-    {
-        this->numthreads = numthreads;
-    }
-    else
-    {
-        this->numthreads = 1;
-    }
-    workingblocks = new int[numthreads];
-	for (unsigned int i = 0; i < numthreads; ++i)
+    workingblocks = new int[this->numthreads];
+    channels = new clHCA::stChannel[0x10 * this->numthreads];
+    for (unsigned int i = 0; i < this->numthreads; ++i)
 	{
 		workersem.emplace_back(0);
 		worker_threads.emplace_back(&HCADecodeService::Decode_Thread, this, i);
@@ -35,6 +30,7 @@ HCADecodeService::~HCADecodeService()
 	shutdown = true;
 	datasem.notify();
 	dispatchthread.join();
+    delete[] channels;
 }
 
 void HCADecodeService::cancel_decode(void* ptr)
@@ -57,6 +53,18 @@ void HCADecodeService::cancel_decode(void* ptr)
     {
         while (workingblocks[i] != -1); // busy wait until threads are finished
     }
+}
+
+void HCADecodeService::wait_for_finish()
+{
+    mutex.lock();
+    while(!filelist.empty() || !blocks.empty())
+    {
+        mutex.unlock();
+        finsem.wait();
+        mutex.lock();
+    }
+    mutex.unlock();
 }
 
 std::pair<void*, size_t> HCADecodeService::decode(const std::string& filename, DWORD samplenum)
@@ -91,11 +99,11 @@ void HCADecodeService::Main_Thread()
 		workingfile = std::move(it->second);
         unsigned blocknum = it->first.second;
 		filelist.erase(it);
-		numchannels = workingfile.get_channelCount();
-		channels = new clHCA::stChannel[numchannels * numthreads];
+        numchannels = workingfile.get_channelCount();
 		workingfile.PrepDecode(channels, numthreads);
 		unsigned int blockCount = workingfile.get_blockCount();
-        for (unsigned int i = blocknum, j = 0; j < blockCount; ++i, ++j)
+        // initiate playback right away, and patch up "blip" cause by out of order decoding
+        for (unsigned int i = blocknum, j = 0; j < blockCount + blocknum; ++i, ++j)
 		{
             blocks.push_back(i % blockCount);
 		}
@@ -121,8 +129,8 @@ void HCADecodeService::Main_Thread()
         for (unsigned int i = 0; i < numthreads; ++i)
 		{
 			while (workingblocks[i] != -1); // busy wait until threads are finished
-		}
-		delete[] channels;
+        }
+        finsem.notify();
 	}
 	for (int i = 0; i < numthreads; ++i)
 	{

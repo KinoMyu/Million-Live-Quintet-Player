@@ -14,7 +14,7 @@ public:
 	~HCADecodeService();
 	void cancel_decode(void* ptr);
     std::pair<void*, size_t> decode(const std::string& hcafilename, DWORD samplenum);
-	//void wait_for_finish();
+    void wait_for_finish();
 private:
 	void Decode_Thread(int id);
 	void Main_Thread();
@@ -27,7 +27,7 @@ private:
 	std::deque<unsigned int> blocks;
 	int* workingblocks;
 	std::deque<Semaphore> workersem;
-	Semaphore mainsem, datasem;
+    Semaphore mainsem, datasem, finsem;
 	std::mutex mutex;
 	clHCA::stChannel* channels;
 	bool shutdown;

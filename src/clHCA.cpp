@@ -647,8 +647,9 @@ bool clHCA::Analyze(void*& wavptr, size_t& sz, const char* filenameHCA)
 void clHCA::AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, unsigned char* outputwavptr)
 {
 	int seekhead = 0;
-	outputwavptr += 2 * blocknum * 8 * 128 * _channelCount + 44;
-	unsigned char* data = (unsigned char*)hcafileptr + (blocknum * _blockSize);
+    outputwavptr += 2 * blocknum * 8 * 128 * _channelCount + 44;
+    unsigned char* data = new unsigned char[_blockSize];
+    memcpy(data, (unsigned char*)hcafileptr + (blocknum * _blockSize), _blockSize);
 	//		if(((unsigned char *)data)[_blockSize-2]==0x5E)_asm int 3
 	_cipher.Mask(data, _blockSize);
 	clData d(data, _blockSize);
@@ -673,6 +674,7 @@ void clHCA::AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, unsign
 			}
 		}
 	}
+    delete[] data;
 }
 
 //--------------------------------------------------
