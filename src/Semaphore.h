@@ -7,8 +7,7 @@
 
 class Semaphore {
 public:
-	Semaphore(int count_ = 0)
-		: count(count_) {}
+	Semaphore(int count_ = 0) : count(count_) {}
 
 	inline void notify()
 	{
