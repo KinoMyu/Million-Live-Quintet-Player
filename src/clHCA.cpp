@@ -1,6 +1,6 @@
 
 //--------------------------------------------------
-// ?C???N???[?h
+// インクルード
 //--------------------------------------------------
 #include "clHCA.h"
 #include <stdio.h>
@@ -8,7 +8,7 @@
 #include <utility>
 
 //--------------------------------------------------
-// ?C?????C?????
+// インライン関数
 //--------------------------------------------------
 inline short bswap(short v) { short r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline unsigned short bswap(unsigned short v) { unsigned short r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
@@ -20,7 +20,7 @@ inline float bswap(float v) { unsigned int i = bswap(*(unsigned int *)&v); retur
 inline unsigned int ceil2(unsigned int a, unsigned int b) { return (b>0) ? (a / b + ((a%b) ? 1 : 0)) : 0; }
 
 //--------------------------------------------------
-// ?R???X?g???N?^
+// コンストラクタ
 //--------------------------------------------------
 clHCA::clHCA(unsigned int ciphKey1, unsigned int ciphKey2) :
     _ciph_key1(ciphKey1), _ciph_key2(ciphKey2), _ath(), _cipher() {
@@ -79,14 +79,14 @@ clHCA::~clHCA()
 }
 
 //--------------------------------------------------
-// HCA?`?F?b?N
+// HCAチェック
 //--------------------------------------------------
 bool clHCA::CheckFile(void *data, unsigned int size) {
     return (data&&size >= 4 && (*(unsigned int *)data & 0x7F7F7F7F) == 0x00414348);
 }
 
 //--------------------------------------------------
-// ?`?F?b?N?T??
+// チェックサム
 //--------------------------------------------------
 unsigned short clHCA::CheckSum(void *data, int size, unsigned short sum) {
     static unsigned short v[] = {
@@ -112,34 +112,34 @@ unsigned short clHCA::CheckSum(void *data, int size, unsigned short sum) {
 }
 
 //--------------------------------------------------
-// ?w?b?_???????R???\?[???o??
+// ヘッダ情報をコンソール出力
 //--------------------------------------------------
 bool clHCA::PrintInfo(const char *filenameHCA) {
 
-    // ?`?F?b?N
+    // チェック
     if (!(filenameHCA))return false;
 
-    // HCA?t?@?C?????J??
+    // HCAファイルを開く
     FILE *fp;
     if (fopen_s(&fp, filenameHCA, "rb")) {
-        printf("Error: ?t?@?C?????J?????????????B\n");
+        printf("Error: ファイルが開けませんでした。\n");
         return false;
     }
 
-    // ?w?b?_?`?F?b?N
+    // ヘッダチェック
     stHeader header;
     memset(&header, 0, sizeof(header));
     fread(&header, sizeof(header), 1, fp);
     if (!CheckFile(&header, sizeof(header))) {
-        printf("Error: HCA?t?@?C??????????????B\n");
+        printf("Error: HCAファイルではありません。\n");
         fclose(fp); return false;
     }
 
-    // ?w?b?_????
+    // ヘッダ解析
     header.dataOffset = bswap(header.dataOffset);
     unsigned char *data = new unsigned char[header.dataOffset];
     if (!data) {
-        printf("Error: ???????s??????B\n");
+        printf("Error: メモリ不足です。\n");
         fclose(fp); return false;
     }
     fseek(fp, 0, SEEK_SET);
@@ -148,9 +148,9 @@ bool clHCA::PrintInfo(const char *filenameHCA) {
     unsigned char *s = (unsigned char *)data;
     unsigned int size = header.dataOffset;
 
-    // ?T?C?Y?`?F?b?N
+    // サイズチェック
     if (size<sizeof(stHeader)) {
-        printf("Error: ?w?b?_??T?C?Y??????????????B\n");
+        printf("Error: ヘッダのサイズが小さすぎます。\n");
         delete[] data; fclose(fp); return false;
     }
 
@@ -159,13 +159,13 @@ bool clHCA::PrintInfo(const char *filenameHCA) {
         stHeader *hca = (stHeader *)s; s += sizeof(stHeader);
         _version = bswap(hca->version);
         _dataOffset = bswap(hca->dataOffset);
-        printf("?R?[?f?b?N: HCA\n");
-        printf("?o?[?W????: %d.%d\n", _version >> 8, _version & 0xFF);
+        printf("コーデック: HCA\n");
+        printf("バージョン: %d.%d\n", _version >> 8, _version & 0xFF);
         //if(size<_dataOffset)return false;
-        if (CheckSum(hca, _dataOffset))printf("?? ?w?b?_???j???????????B????????????????x?????o????B\n");
+        if (CheckSum(hca, _dataOffset))printf("※ ヘッダが破損しています。改変してる場合もこの警告が出ます。\n");
     }
     else {
-        printf("?? HCA?`?????N????????????B?????K?v?????????B\n");
+        printf("※ HCAチャンクがありません。再生に必要な情報です。\n");
     }
 
     // fmt
@@ -177,23 +177,23 @@ bool clHCA::PrintInfo(const char *filenameHCA) {
         _muteHeader = bswap(fmt->muteHeader);
         _muteFooter = bswap(fmt->muteFooter);
         switch (_channelCount) {
-        case 1:printf("?`?????l????: ???m???? (1?`?????l??)\n"); break;
-        case 2:printf("?`?????l????: ?X?e???I (2?`?????l??)\n"); break;
-        default:printf("?`?????l????: %d?`?????l??\n", _channelCount); break;
+        case 1:printf("チャンネル数: モノラル (1チャンネル)\n"); break;
+        case 2:printf("チャンネル数: ステレオ (2チャンネル)\n"); break;
+        default:printf("チャンネル数: %dチャンネル\n", _channelCount); break;
         }
         if (!(_channelCount >= 1 && _channelCount <= 16)) {
-            printf("?? ?`?????l?????????1?`16????B\n");
+            printf("※ チャンネル数の範囲は1～16です。\n");
         }
-        printf("?T???v?????O???[?g: %dHz\n", _samplingRate);
+        printf("サンプリングレート: %dHz\n", _samplingRate);
         if (!(_samplingRate >= 1 && _samplingRate <= 0x7FFFFF)) {
-            printf("?? ?T???v?????O???[?g?????1?`8388607(0x7FFFFF)????B\n");
+            printf("※ サンプリングレートの範囲は1～8388607(0x7FFFFF)です。\n");
         }
-        printf("?u???b?N??: %d\n", _blockCount);
-        printf("???????u???b?N??: %d\n", (_muteHeader - 0x80) / 0x400);
-        printf("?????????T???v????: %d\n", _muteFooter);
+        printf("ブロック数: %d\n", _blockCount);
+        printf("先頭無音ブロック数: %d\n", (_muteHeader - 0x80) / 0x400);
+        printf("末尾無音サンプル数: %d\n", _muteFooter);
     }
     else {
-        printf("?? fmt?`?????N????????????B?????K?v?????????B\n");
+        printf("※ fmtチャンクがありません。再生に必要な情報です。\n");
     }
 
     // comp
@@ -209,20 +209,20 @@ bool clHCA::PrintInfo(const char *filenameHCA) {
         _comp_r07 = comp->r07;
         _comp_r08 = comp->r08;
         unsigned int bps = _samplingRate * _blockSize / 128;
-        if (bps<1000000)printf("?r?b?g???[?g: %gkbps CBR (????r?b?g???[?g)\n", bps / 1000.0f);
-        else printf("?r?b?g???[?g: %gMbps CBR (????r?b?g???[?g)\n", bps / 1000000.0f);
-        printf("?u???b?N?T?C?Y: 0x%X\n", _blockSize);
+        if (bps<1000000)printf("ビットレート: %gkbps CBR (固定ビットレート)\n", bps / 1000.0f);
+        else printf("ビットレート: %gMbps CBR (固定ビットレート)\n", bps / 1000000.0f);
+        printf("ブロックサイズ: 0x%X\n", _blockSize);
         if (!(_blockSize >= 8 && _blockSize <= 0xFFFF)) {
-            printf("?? ?u???b?N?T?C?Y?????8?`65535(0xFFFF)????Bv1.3???0??VBR???????????????????Av2.0?????p?~??????????B\n");
+            printf("※ ブロックサイズの範囲は8～65535(0xFFFF)です。v1.3では0でVBRになるようになってましたが、v2.0から廃止されたようです。\n");
         }
         printf("comp1: %d\n", _comp_r01);
         printf("comp2: %d\n", _comp_r02);
         if (!(_comp_r01 >= 0 && _comp_r01 <= _comp_r02 && _comp_r02 <= 0x1F)) {
-            printf("?? comp1??comp2?????0<=comp1<=comp2<=31????Bv2.0????Acomp1??1?Acomp2??15?????????????B\n");
+            printf("※ comp1とcomp2の範囲は0<=comp1<=comp2<=31です。v2.0現在、comp1は1、comp2は15で固定されています。\n");
         }
         printf("comp3: %d\n", _comp_r03);
         if (!_comp_r03) {
-            printf("?? comp3??1?????l????B\n");
+            printf("※ comp3は1以上の値です。\n");
         }
         printf("comp4: %d\n", _comp_r04);
         printf("comp5: %d\n", _comp_r05);
@@ -244,20 +244,20 @@ bool clHCA::PrintInfo(const char *filenameHCA) {
         _comp_r07 = _comp_r05 - _comp_r06;
         _comp_r08 = 0;
         unsigned int bps = _samplingRate * _blockSize / 128;
-        if (bps<1000000)printf("?r?b?g???[?g: %gkbps CBR (????r?b?g???[?g)\n", bps / 1000.0f);
-        else printf("?r?b?g???[?g: %gMbps CBR (????r?b?g???[?g)\n", bps / 1000000.0f);
-        printf("?u???b?N?T?C?Y: 0x%X\n", _blockSize);
+        if (bps<1000000)printf("ビットレート: %gkbps CBR (固定ビットレート)\n", bps / 1000.0f);
+        else printf("ビットレート: %gMbps CBR (固定ビットレート)\n", bps / 1000000.0f);
+        printf("ブロックサイズ: 0x%X\n", _blockSize);
         if (!(_blockSize >= 8 && _blockSize <= 0xFFFF)) {
-            printf("?? ?u???b?N?T?C?Y?????8?`65535(0xFFFF)????Bv1.3???0??VBR???????????????????Av2.0?????p?~??????????B\n");
+            printf("※ ブロックサイズの範囲は8～65535(0xFFFF)です。v1.3では0でVBRになるようになってましたが、v2.0から廃止されたようです。\n");
         }
         printf("dec1: %d\n", _comp_r01);
         printf("dec2: %d\n", _comp_r02);
         if (!(_comp_r01 >= 0 && _comp_r01 <= _comp_r02 && _comp_r02 <= 0x1F)) {
-            printf("?? dec1??dec2?????0<=dec1<=dec2<=31????Bv2.0????Adec1??1?Adec2??15?????????????B\n");
+            printf("※ dec1とdec2の範囲は0<=dec1<=dec2<=31です。v2.0現在、dec1は1、dec2は15で固定されています。\n");
         }
         printf("dec3: %d\n", _comp_r03);
         if (!_comp_r03) {
-            printf("?? dec3????????1?????l??C??????????B\n");
+            printf("※ dec3は再生時に1以上の値に修正されます。\n");
         }
         printf("dec4: %d\n", _comp_r04);
         printf("dec5: %d\n", _comp_r05);
@@ -265,7 +265,7 @@ bool clHCA::PrintInfo(const char *filenameHCA) {
         printf("dec7: %d\n", _comp_r07);
     }
     else {
-        printf("?? comp?`?????N?????dec?`?????N????????????B?????K?v?????????B\n");
+        printf("※ compチャンクまたはdecチャンクがありません。再生に必要な情報です。\n");
     }
 
     // vbr
@@ -273,13 +273,13 @@ bool clHCA::PrintInfo(const char *filenameHCA) {
         stVBR *vbr = (stVBR *)s; s += sizeof(stVBR);
         _vbr_r01 = bswap(vbr->r01);
         _vbr_r02 = bswap(vbr->r02);
-        printf("?r?b?g???[?g: VBR (??��r?b?g???[?g) ??v2.0??p?~???????????B\n");
+        printf("ビットレート: VBR (可変ビットレート) ※v2.0で廃止されています。\n");
         if (!(_blockSize == 0)) {
-            printf("?? comp?????dec?`?????N??????CBR???w???????????B\n");
+            printf("※ compまたはdecチャンクですでにCBRが指定されています。\n");
         }
         printf("vbr1: %d\n", _vbr_r01);
         if (!(_vbr_r01 >= 0 && _vbr_r01 <= 0x1FF)) {
-            printf("?? vbr1?????0?`511(0x1FF)????B\n");
+            printf("※ vbr1の範囲は0～511(0x1FF)です。\n");
         }
         printf("vbr2: %d\n", _vbr_r02);
     }
@@ -292,11 +292,11 @@ bool clHCA::PrintInfo(const char *filenameHCA) {
     if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x00687461) {
         stATH *ath = (stATH *)s; s += 6;//s+=sizeof(stATH);
         _ath_type = ath->type;
-        printf("ATH?^?C?v:%d ??v2.0?????p?~???????????B\n", _ath_type);
+        printf("ATHタイプ:%d ※v2.0から廃止されています。\n", _ath_type);
     }
     else {
         if (_version<0x200) {
-            printf("ATH?^?C?v:1 ??v2.0?????p?~???????????B\n");
+            printf("ATHタイプ:1 ※v2.0から廃止されています。\n");
         }
     }
 
@@ -307,18 +307,18 @@ bool clHCA::PrintInfo(const char *filenameHCA) {
         _loopEnd = bswap(loop->end);
         _loopCount = bswap(loop->count);
         _loop_r01 = bswap(loop->r01);
-        printf("???[?v?J?n?u???b?N: %d\n", _loopStart);
-        printf("???[?v?I???u???b?N: %d\n", _loopEnd);
+        printf("ループ開始ブロック: %d\n", _loopStart);
+        printf("ループ終了ブロック: %d\n", _loopEnd);
         if (!(_loopStart >= 0 && _loopStart <= _loopEnd && _loopEnd<_blockCount)) {
-            printf("?? ???[?v?J?n?u???b?N????[?v?I???u???b?N?????A0<=???[?v?J?n?u???b?N<=???[?v?I???u???b?N<?u???b?N?? ????B\n");
+            printf("※ ループ開始ブロックとループ終了ブロックの範囲は、0<=ループ開始ブロック<=ループ終了ブロック<ブロック数 です。\n");
         }
         if (_loopCount == 0x80) {
-            printf("???[?v????: ???????[?v\n");
+            printf("ループ回数: 無限ループ\n");
         }
         else {
-            printf("???[?v????: %d??\n", _loopCount);
+            printf("ループ回数: %d回\n", _loopCount);
         }
-        printf("???[?v????1: %d\n", _loop_r01);
+        printf("ループ情報1: %d\n", _loop_r01);
     }
 
     // ciph
@@ -326,13 +326,13 @@ bool clHCA::PrintInfo(const char *filenameHCA) {
         stCipher *ciph = (stCipher *)s; s += 6;//s+=sizeof(stCipher);
         _ciph_type = bswap(ciph->type);
         switch (_ciph_type) {
-        case 0:printf("??????^?C?v: ???\n"); break;
-        case 1:printf("??????^?C?v: ???????????\n"); break;
-        case 0x38:printf("??????^?C?v: ???L??????? ?????????????g???????o??g?`?????????????????B\n"); break;
-        default:printf("??????^?C?v: %d\n", _ciph_type); break;
+        case 0:printf("暗号化タイプ: なし\n"); break;
+        case 1:printf("暗号化タイプ: 鍵無し暗号化\n"); break;
+        case 0x38:printf("暗号化タイプ: 鍵有り暗号化 ※正しい鍵を使わないと出力波形がおかしくなります。\n"); break;
+        default:printf("暗号化タイプ: %d\n", _ciph_type); break;
         }
         if (!(_ciph_type == 0 || _ciph_type == 1 || _ciph_type == 0x38)) {
-            printf("?? ?????????^?C?v??Av2.0???????????????B\n");
+            printf("※ この暗号化タイプは、v2.0現在再生できません。\n");
         }
     }
 
@@ -340,7 +340,7 @@ bool clHCA::PrintInfo(const char *filenameHCA) {
     if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x00617672) {
         stRVA *rva = (stRVA *)s; s += sizeof(stRVA);
         _rva_volume = bswap(rva->volume);
-        printf("????{?????[??????: %g?{\n", _rva_volume);
+        printf("相対ボリューム調節: %g倍\n", _rva_volume);
     }
 
     // comm
@@ -348,36 +348,36 @@ bool clHCA::PrintInfo(const char *filenameHCA) {
         stComment *comm = (stComment *)s; s += 5;//s+=sizeof(stComment);
         _comm_len = comm->len;
         _comm_comment = (char *)s;
-        printf("?R?????g: %s\n", _comm_comment);
+        printf("コメント: %s\n", _comm_comment);
     }
 
     delete[] data;
 
-    // ?????
+    // 閉じる
     fclose(fp);
 
     return true;
 }
 
 //--------------------------------------------------
-// ??????
+// 復号化
 //--------------------------------------------------
 bool clHCA::Decrypt(const char *filenameHCA) {
 
-    // ?`?F?b?N
+    // チェック
     if (!(filenameHCA))return false;
 
-    // HCA?t?@?C?????J??
+    // HCAファイルを開く
     FILE *fp;
     if (fopen_s(&fp, filenameHCA, "r+b"))return false;
 
-    // ?w?b?_?`?F?b?N
+    // ヘッダチェック
     stHeader header;
     memset(&header, 0, sizeof(header));
     fread(&header, sizeof(header), 1, fp);
     if (!CheckFile(&header, sizeof(header))) { fclose(fp); return false; }
 
-    // ?w?b?_????
+    // ヘッダ解析
     header.dataOffset = bswap(header.dataOffset);
     unsigned char *data = new unsigned char[header.dataOffset];
     if (!data) { fclose(fp); return false; }
@@ -387,7 +387,7 @@ bool clHCA::Decrypt(const char *filenameHCA) {
     unsigned char *s = (unsigned char *)data;
     unsigned int size = header.dataOffset;
 
-    // ?T?C?Y?`?F?b?N
+    // サイズチェック
     if (size<sizeof(stHeader)) { delete[] data; fclose(fp); return false; }
 
     // HCA
@@ -479,19 +479,19 @@ bool clHCA::Decrypt(const char *filenameHCA) {
         pad->pad &= 0x7F7F7F7F;
     }
 
-    // ??????
+    // 初期化
     if (!_ath.Init(_ath_type, _samplingRate)) { delete[] data; fclose(fp); return false; }
     if (!_cipher.Init(_ciph_type, _ciph_key1, _ciph_key2)) { delete[] data; fclose(fp); return false; }
     unsigned char *data2 = new unsigned char[_blockSize];
     if (!data2) { delete[] data; fclose(fp); return false; }
 
-    // ?w?b?_??????????
+    // ヘッダを書き込み
     *(unsigned short *)&data[size - 2] = bswap(CheckSum(data, size - 2));
     fseek(fp, 0, SEEK_SET);
     fwrite(data, size, 1, fp);
     delete[] data;
 
-    // ?u???b?N?f?[?^??????
+    // ブロックデータを復号化
     if (_ciph_type != 0) {
         for (unsigned int i = 0, a = size; i<_blockCount; i++, a += _blockSize) {
             fseek(fp, a, SEEK_SET);
@@ -504,7 +504,7 @@ bool clHCA::Decrypt(const char *filenameHCA) {
     }
     delete[] data2;
 
-    // ?????
+    // 閉じる
     fclose(fp);
 
     return true;
@@ -516,16 +516,16 @@ bool clHCA::Analyze(void*& wavptr, size_t& sz, const char* filenameHCA)
 {
     wavptr = nullptr;
     sz = 0;
-    // ?`?F?b?N
+    // チェック
     if (!(filenameHCA))return false;
 
-    // HCA?t?@?C?????J??
+    // HCAファイルを開く
     FILE *fp;
     if (fopen_s(&fp, filenameHCA, "rb"))return false;
 
     // Analyze
 
-    // ?`?F?b?N
+    // チェック
     int mode = 16;
     int loop = 0;
     if (!(fp && (mode == 0 || mode == 8 || mode == 16 || mode == 24 || mode == 32) && loop >= 0))
@@ -534,11 +534,11 @@ bool clHCA::Analyze(void*& wavptr, size_t& sz, const char* filenameHCA)
         return false;
     }
 
-    //
+    // 
     FILE *fp1 = (FILE *)fp;
     unsigned int address = ftell(fp1);
 
-    // ?w?b?_?`?F?b?N
+    // ヘッダチェック
     stHeader header;
     memset(&header, 0, sizeof(header));
     fread(&header, sizeof(header), 1, fp1);
@@ -548,7 +548,7 @@ bool clHCA::Analyze(void*& wavptr, size_t& sz, const char* filenameHCA)
         return false;
     }
 
-    // ?w?b?_????
+    // ヘッダ解析
     header.dataOffset = bswap(header.dataOffset);
     unsigned char *data1 = new unsigned char[header.dataOffset];
     if (!data1) { fclose(fp1); return false; }
@@ -557,7 +557,7 @@ bool clHCA::Analyze(void*& wavptr, size_t& sz, const char* filenameHCA)
     if (!Decode(data1, header.dataOffset, 0)) { delete[] data1;
     fclose(fp); return false; }
 
-    // WAVE?w?b?_??????????
+    // WAVEヘッダを書き込み
     struct stWAVEHeader {
         char riff[4];
         unsigned int riffSize;
@@ -607,13 +607,13 @@ bool clHCA::Analyze(void*& wavptr, size_t& sz, const char* filenameHCA)
     wavRiff.fmtSamplesPerSec = wavRiff.fmtSamplingRate*wavRiff.fmtSamplingSize;
     if (_loopFlg) {
         wavSmpl.samplePeriod = (unsigned int)(1 / (double)wavRiff.fmtSamplingRate * 1000000000);
-        wavSmpl.loop_Start = _loopStart * 0x80 * 8 + _muteFooter;//???v?Z???@?s??
-        wavSmpl.loop_End = (_loopEnd + 1) * 0x80 * 8 - 1;//???v?Z???@?s??
+        wavSmpl.loop_Start = _loopStart * 0x80 * 8 + _muteFooter;//※計算方法不明
+        wavSmpl.loop_End = (_loopEnd + 1) * 0x80 * 8 - 1;//※計算方法不明
         wavSmpl.loop_PlayCount = (_loopCount == 0x80) ? 0 : _loopCount;
     }
     else if (loop) {
         wavSmpl.loop_Start = 0;
-        wavSmpl.loop_End = (_blockCount + 1) * 0x80 * 8 - 1;//???v?Z???@?s??
+        wavSmpl.loop_End = (_blockCount + 1) * 0x80 * 8 - 1;//※計算方法不明
         _loopStart = 0;
         _loopEnd = _blockCount;
     }
@@ -639,7 +639,7 @@ bool clHCA::Analyze(void*& wavptr, size_t& sz, const char* filenameHCA)
     delete[] data1;
     hcafileptr = new unsigned char[_blockCount * _blockSize];
     fread(hcafileptr, _blockCount, _blockSize, fp1);
-    // ?????
+    // 閉じる
     fclose(fp);
     return true;
 }
@@ -686,21 +686,21 @@ void clHCA::AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, void*&
 }
 
 //--------------------------------------------------
-// ?f?R?[?h????WAVE?t?@?C??????
+// デコードしてWAVEファイルに保存
 //--------------------------------------------------
 bool clHCA::DecodeToWavefile(const char *filenameHCA, const char *filenameWAV, float volume, int mode, int loop) {
 
-    // ?`?F?b?N
+    // チェック
     if (!(filenameHCA))return false;
 
-    // HCA?t?@?C?????J??
+    // HCAファイルを開く
     FILE *fp;
     if (fopen_s(&fp, filenameHCA, "rb"))return false;
 
-    // ???
+    // 保存
     if (!DecodeToWavefileStream(fp, filenameWAV, volume, mode, loop)) { fclose(fp); return false; }
 
-    // ?????
+    // 閉じる
     fclose(fp);
 
     return true;
@@ -708,17 +708,17 @@ bool clHCA::DecodeToWavefile(const char *filenameHCA, const char *filenameWAV, f
 void* clHCA::DecodeToMemory(size_t& sz, const char *filenameHCA, float volume, int mode, int loop) {
 
     void* ptr = nullptr;
-    // ?`?F?b?N
+    // チェック
     if (!(filenameHCA))return nullptr;
 
-    // HCA?t?@?C?????J??
+    // HCAファイルを開く
     FILE *fp;
     if (fopen_s(&fp, filenameHCA, "rb"))return nullptr;
 
-    // ???
+    // 保存
     ptr = DecodeToMemoryStream(sz, fp, volume, mode, loop);
 
-    // ?????
+    // 閉じる
     fclose(fp);
 
     return ptr;
@@ -726,20 +726,20 @@ void* clHCA::DecodeToMemory(size_t& sz, const char *filenameHCA, float volume, i
 
 void* clHCA::DecodeToMemoryStream(size_t& sz, void *fpHCA, float volume, int mode, int loop) {
 
-    // ?`?F?b?N
+    // チェック
     if (!(fpHCA && (mode == 0 || mode == 8 || mode == 16 || mode == 24 || mode == 32) && loop >= 0))return NULL;
 
-    //
+    // 
     FILE *fp1 = (FILE *)fpHCA;
     unsigned int address = ftell(fp1);
 
-    // ?w?b?_?`?F?b?N
+    // ヘッダチェック
     stHeader header;
     memset(&header, 0, sizeof(header));
     fread(&header, sizeof(header), 1, fp1);
     if (!CheckFile(&header, sizeof(header)))return NULL;
 
-    // ?w?b?_????
+    // ヘッダ解析
     header.dataOffset = bswap(header.dataOffset);
     unsigned char *data1 = new unsigned char[header.dataOffset];
     if (!data1) { fclose(fp1); return NULL; }
@@ -747,7 +747,7 @@ void* clHCA::DecodeToMemoryStream(size_t& sz, void *fpHCA, float volume, int mod
     fread(data1, header.dataOffset, 1, fp1);
     if (!Decode(data1, header.dataOffset, 0)) { delete[] data1; return NULL; }
 
-    // WAVE?w?b?_??????????
+    // WAVEヘッダを書き込み
     struct stWAVEHeader {
         char riff[4];
         unsigned int riffSize;
@@ -797,13 +797,13 @@ void* clHCA::DecodeToMemoryStream(size_t& sz, void *fpHCA, float volume, int mod
     wavRiff.fmtSamplesPerSec = wavRiff.fmtSamplingRate*wavRiff.fmtSamplingSize;
     if (_loopFlg) {
         wavSmpl.samplePeriod = (unsigned int)(1 / (double)wavRiff.fmtSamplingRate * 1000000000);
-        wavSmpl.loop_Start = _loopStart * 0x80 * 8 + _muteFooter;//???v?Z???@?s??
-        wavSmpl.loop_End = (_loopEnd + 1) * 0x80 * 8 - 1;//???v?Z???@?s??
+        wavSmpl.loop_Start = _loopStart * 0x80 * 8 + _muteFooter;//※計算方法不明
+        wavSmpl.loop_End = (_loopEnd + 1) * 0x80 * 8 - 1;//※計算方法不明
         wavSmpl.loop_PlayCount = (_loopCount == 0x80) ? 0 : _loopCount;
     }
     else if (loop) {
         wavSmpl.loop_Start = 0;
-        wavSmpl.loop_End = (_blockCount + 1) * 0x80 * 8 - 1;//???v?Z???@?s??
+        wavSmpl.loop_End = (_blockCount + 1) * 0x80 * 8 - 1;//※計算方法不明
         _loopStart = 0;
         _loopEnd = _blockCount;
     }
@@ -836,7 +836,7 @@ void* clHCA::DecodeToMemoryStream(size_t& sz, void *fpHCA, float volume, int mod
         ptr[seekhead++] = ((char*)(&wavData))[i];
     }
 
-    // ?f?R?[?h
+    // デコード
     void *modeFunction = DecodeToMemory_DecodeMode16bit;
     /*switch (mode) {
     case 0:modeFunction = DecodeToWavefile_DecodeModeFloat; break;
@@ -861,7 +861,7 @@ void* clHCA::DecodeToMemoryStream(size_t& sz, void *fpHCA, float volume, int mod
     }*/
     delete[] data2;
     delete[] data1;
-    // ?????
+    // 閉じる
 
     return ptr;
 }
@@ -890,20 +890,20 @@ void clHCA::DecodeToMemory_DecodeMode16bit(float f, void* ptr, int& seekhead) {
 }
 bool clHCA::DecodeToWavefileStream(void *fpHCA, const char *filenameWAV, float volume, int mode, int loop) {
 
-    // ?`?F?b?N
+    // チェック
     if (!(fpHCA&&filenameWAV && (mode == 0 || mode == 8 || mode == 16 || mode == 24 || mode == 32) && loop >= 0))return false;
 
-    //
+    // 
     FILE *fp1 = (FILE *)fpHCA;
     unsigned int address = ftell(fp1);
 
-    // ?w?b?_?`?F?b?N
+    // ヘッダチェック
     stHeader header;
     memset(&header, 0, sizeof(header));
     fread(&header, sizeof(header), 1, fp1);
     if (!CheckFile(&header, sizeof(header)))return false;
 
-    // ?w?b?_????
+    // ヘッダ解析
     header.dataOffset = bswap(header.dataOffset);
     unsigned char *data1 = new unsigned char[header.dataOffset];
     if (!data1) { fclose(fp1); return false; }
@@ -911,11 +911,11 @@ bool clHCA::DecodeToWavefileStream(void *fpHCA, const char *filenameWAV, float v
     fread(data1, header.dataOffset, 1, fp1);
     if (!Decode(data1, header.dataOffset, 0)) { delete[] data1; return false; }
 
-    // WAVE?t?@?C?????J??
+    // WAVEファイルを開く
     FILE *fp2;
     if (fopen_s(&fp2, filenameWAV, "wb")) { delete[] data1; return false; }
 
-    // WAVE?w?b?_??????????
+    // WAVEヘッダを書き込み
     struct stWAVEHeader {
         char riff[4];
         unsigned int riffSize;
@@ -965,13 +965,13 @@ bool clHCA::DecodeToWavefileStream(void *fpHCA, const char *filenameWAV, float v
     wavRiff.fmtSamplesPerSec = wavRiff.fmtSamplingRate*wavRiff.fmtSamplingSize;
     if (_loopFlg) {
         wavSmpl.samplePeriod = (unsigned int)(1 / (double)wavRiff.fmtSamplingRate * 1000000000);
-        wavSmpl.loop_Start = _loopStart * 0x80 * 8 + _muteFooter;//???v?Z???@?s??
-        wavSmpl.loop_End = (_loopEnd + 1) * 0x80 * 8 - 1;//???v?Z???@?s??
+        wavSmpl.loop_Start = _loopStart * 0x80 * 8 + _muteFooter;//※計算方法不明
+        wavSmpl.loop_End = (_loopEnd + 1) * 0x80 * 8 - 1;//※計算方法不明
         wavSmpl.loop_PlayCount = (_loopCount == 0x80) ? 0 : _loopCount;
     }
     else if (loop) {
         wavSmpl.loop_Start = 0;
-        wavSmpl.loop_End = (_blockCount + 1) * 0x80 * 8 - 1;//???v?Z???@?s??
+        wavSmpl.loop_End = (_blockCount + 1) * 0x80 * 8 - 1;//※計算方法不明
         _loopStart = 0;
         _loopEnd = _blockCount;
     }
@@ -991,10 +991,10 @@ bool clHCA::DecodeToWavefileStream(void *fpHCA, const char *filenameWAV, float v
     }
     fwrite(&wavData, sizeof(wavData), 1, fp2);
 
-    // ????{?????[??????
+    // 相対ボリュームを調節
     _rva_volume *= volume;
 
-    // ?f?R?[?h
+    // デコード
     void *modeFunction = DecodeToWavefile_DecodeMode16bit;
     switch (mode) {
     case 0:modeFunction = DecodeToWavefile_DecodeModeFloat; break;
@@ -1019,7 +1019,7 @@ bool clHCA::DecodeToWavefileStream(void *fpHCA, const char *filenameWAV, float v
     }
     delete[] data2;
     delete[] data1;
-    // ?????
+    // 閉じる
     fclose(fp2);
 
     return true;
@@ -1062,35 +1062,35 @@ void clHCA::DecodeToWavefile_DecodeMode24bit(float f, void *fp) { int v = (int)(
 void clHCA::DecodeToWavefile_DecodeMode32bit(float f, void *fp) { int v = (int)(f * 0x7FFFFFFF); fwrite(&v, 4, 1, (FILE *)fp); }
 
 //--------------------------------------------------
-// ?G???R?[?h????HCA?t?@?C??????
+// エンコードしてHCAファイルに保存
 //--------------------------------------------------
 /*bool clHCA::EncodeFromWavefile(const char *filenameWAV,const char *filenameHCA,float volume){
 
-// ?`?F?b?N
+// チェック
 if(!(filenameWAV))return false;
 
-// WAV?t?@?C?????J??
+// WAVファイルを開く
 FILE *fp;
 if(fopen_s(&fp,filenameWAV,"rb"))return false;
 
-// ???
+// 保存
 if(!EncodeFromWavefileStream(fp,filenameHCA,volume)){fclose(fp);return false;}
 
-// ?????
+// 閉じる
 fclose(fp);
 
 return true;
 }
 bool clHCA::EncodeFromWavefileStream(void *fpWAV,const char *filenameHCA,float volume){
 
-// ?`?F?b?N
+// チェック
 if(!(fpWAV&&filenameHCA))return false;
 
 //
 FILE *fp1=(FILE *)fpWAV;
 unsigned int address=ftell(fp1);
 
-// ?w?b?_?`?F?b?N
+// ヘッダチェック
 struct stWAVEHeader{
 unsigned int riff;
 unsigned int riffSize;
@@ -1186,7 +1186,7 @@ void clHCA::clATH::Init1(unsigned int key) {
 }
 
 //--------------------------------------------------
-// ??????e?[?u??
+// 暗号化テーブル
 //--------------------------------------------------
 clHCA::clCipher::clCipher() { Init0(); }
 bool clHCA::clCipher::Init(int type, unsigned int key1, unsigned int key2) {
@@ -1216,7 +1216,7 @@ void clHCA::clCipher::Init1(void) {
 }
 void clHCA::clCipher::Init56(unsigned int key1, unsigned int key2) {
 
-    // ?e?[?u??1????
+    // テーブル1を生成
     unsigned char t1[8];
     if (!key1)key2--;
     key1--;
@@ -1226,7 +1226,7 @@ void clHCA::clCipher::Init56(unsigned int key1, unsigned int key2) {
         key2 >>= 8;
     }
 
-    // ?e?[?u??2
+    // テーブル2
     unsigned char t2[0x10] = {
         t1[1],t1[1] ^ t1[6],
         t1[2] ^ t1[3],t1[2],
@@ -1238,7 +1238,7 @@ void clHCA::clCipher::Init56(unsigned int key1, unsigned int key2) {
         t1[6] ^ t1[1],t1[6],
     };
 
-    // ?e?[?u??3
+    // テーブル3
     unsigned char t3[0x100], t31[0x10], t32[0x10], *t = t3;
     Init56_CreateTable(t31, t1[0]);
     for (int i = 0; i<0x10; i++) {
@@ -1249,7 +1249,7 @@ void clHCA::clCipher::Init56(unsigned int key1, unsigned int key2) {
         }
     }
 
-    // CIPH?e?[?u??
+    // CIPHテーブル
     t = &_table[1];
     for (int i = 0, v = 0; i<0x100; i++) {
         v = (v + 0x11) & 0xFF;
@@ -1271,7 +1271,7 @@ void clHCA::clCipher::Init56_CreateTable(unsigned char *r, unsigned char key) {
 }
 
 //--------------------------------------------------
-// ?f?[?^
+// データ
 //--------------------------------------------------
 clHCA::clData::clData(void *data, int size) :_data((unsigned char *)data), _size(size * 8 - 16), _bit(0) {}
 int clHCA::clData::CheckBit(int bitSize) {
@@ -1295,18 +1295,18 @@ void clHCA::clData::AddBit(int bitSize) {
 }
 
 //--------------------------------------------------
-// ?f?R?[?h
+// デコード
 //--------------------------------------------------
 bool clHCA::Decode(void *data, unsigned int size, unsigned int address) {
 
-    // ?`?F?b?N
+    // チェック
     if (!(data))return false;
 
-    // ?w?b?_
+    // ヘッダ
     if (address == 0) {
         unsigned char *s = (unsigned char *)data;
 
-        // ?T?C?Y?`?F?b?N
+        // サイズチェック
         if (size<sizeof(stHeader))return false;
 
         // HCA
@@ -1314,9 +1314,9 @@ bool clHCA::Decode(void *data, unsigned int size, unsigned int address) {
             stHeader *hca = (stHeader *)s; s += sizeof(stHeader);
             _version = bswap(hca->version);
             _dataOffset = bswap(hca->dataOffset);
-            //if(!(_version<=0x200&&_version>0x101))return false; // ?o?[?W?????`?F?b?N(????)
+            //if(!(_version<=0x200&&_version>0x101))return false; // バージョンチェック(無効)
             if (size<_dataOffset)return false;
-            //if(CheckSum(hca,_dataOffset))return false; // ?w?b?_??j???`?F?b?N(?w?b?_??????L?????????j???`?F?b?N????)
+            //if(CheckSum(hca,_dataOffset))return false; // ヘッダの破損チェック(ヘッダ改変を有効にするため破損チェック無効)
         }
         else {
             return false;
@@ -1391,7 +1391,7 @@ bool clHCA::Decode(void *data, unsigned int size, unsigned int address) {
             _ath_type = ath->type;
         }
         else {
-            _ath_type = (_version<0x200) ? 1 : 0;//v1.3???f?t?H???g?l??1??????????Av2.0????ATH?e?[?u?????p?~????????????????0??
+            _ath_type = (_version<0x200) ? 1 : 0;//v1.3ではデフォルト値が1になってたが、v2.0からATHテーブルが廃止されてるみたいなので0に
         }
 
         // loop
@@ -1442,14 +1442,14 @@ bool clHCA::Decode(void *data, unsigned int size, unsigned int address) {
             _comm_comment = NULL;
         }
 
-        // ??????
+        // 初期化
         if (!_ath.Init(_ath_type, _samplingRate))return false;
         if (!_cipher.Init(_ciph_type, _ciph_key1, _ciph_key2))return false;
 
-        // ?l?`?F?b?N(?w?b?_????��~?X??????G???[????????????)
-        if (!_comp_r03)_comp_r03 = 1;//0?????Z???h??????
+        // 値チェック(ヘッダの改変ミスによるエラーを回避するため)
+        if (!_comp_r03)_comp_r03 = 1;//0での除算を防ぐため
 
-                                     // ?f?R?[?h????
+                                     // デコード準備
         memset(_channel, 0, sizeof(_channel));
         if (!(_comp_r01 == 1 && _comp_r02 == 15))return false;
         _comp_r09 = ceil2(_comp_r05 - (_comp_r06 + _comp_r07), _comp_r08);
@@ -1477,14 +1477,14 @@ bool clHCA::Decode(void *data, unsigned int size, unsigned int address) {
 
     }
 
-    // ?u???b?N?f?[?^
+    // ブロックデータ
     else if (address >= _dataOffset) {
         if (size<_blockSize)return false;
         if (CheckSum(data, _blockSize))return false;
         //        if(((unsigned char *)data)[_blockSize-2]==0x5E)_asm int 3
         _cipher.Mask(data, _blockSize);
         clData d(data, _blockSize);
-        int magic = d.GetBit(16);//0xFFFF???
+        int magic = d.GetBit(16);//0xFFFF固定
         if (magic == 0xFFFF) {
             int a = (d.GetBit(9) << 8) - d.GetBit(7);
             for (unsigned int i = 0; i<_channelCount; i++)_channel[i].Decode1(&d, _comp_r09, a, _ath.GetTable());
@@ -1531,8 +1531,8 @@ bool clHCA::PrepDecode(stChannel* channels, unsigned int numthreads)
 }
 
 //--------------------------------------------------
-// ?f?R?[?h?????i?K
-//   ?x?[?X?f?[?^???????
+// デコード第一段階
+//   ベースデータの読み込み
 //--------------------------------------------------
 void clHCA::stChannel::Decode1(clData *data, unsigned int a, int b, unsigned char *ath) {
     static unsigned char scalelist[] = {
@@ -1610,8 +1610,8 @@ void clHCA::stChannel::Decode1(clData *data, unsigned int a, int b, unsigned cha
 }
 
 //--------------------------------------------------
-// ?f?R?[?h?????i?K
-//   ?u???b?N?f?[?^???????
+// デコード第二段階
+//   ブロックデータの読み込み
 //--------------------------------------------------
 void clHCA::stChannel::Decode2(clData *data) {
     static char list1[] = {
@@ -1658,8 +1658,8 @@ void clHCA::stChannel::Decode2(clData *data) {
 }
 
 //--------------------------------------------------
-// ?f?R?[?h???O?i?K
-//   ?u???b?N?f?[?^?C??????P ??v2.0???????
+// デコード第三段階
+//   ブロックデータ修正その１ ※v2.0から追加
 //--------------------------------------------------
 void clHCA::stChannel::Decode3(unsigned int a, unsigned int b, unsigned int c, unsigned int d) {
     if (type != 2 && b>0) {
@@ -1695,8 +1695,8 @@ void clHCA::stChannel::Decode3(unsigned int a, unsigned int b, unsigned int c, u
 }
 
 //--------------------------------------------------
-// ?f?R?[?h???l?i?K
-//   ?u???b?N?f?[?^?C??????Q
+// デコード第四段階
+//   ブロックデータ修正その２
 //--------------------------------------------------
 void clHCA::stChannel::Decode4(int index, unsigned int a, unsigned int b, unsigned int c) {
     if (type == 1 && c) {
@@ -1716,8 +1716,8 @@ void clHCA::stChannel::Decode4(int index, unsigned int a, unsigned int b, unsign
 }
 
 //--------------------------------------------------
-// ?f?R?[?h????i?K
-//   ?g?`?f?[?^????
+// デコード第五段階
+//   波形データを生成
 //--------------------------------------------------
 void clHCA::stChannel::Decode5(int index) {
     static unsigned int list1Int[7][0x40] = {

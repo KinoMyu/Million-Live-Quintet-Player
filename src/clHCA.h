@@ -1,9 +1,7 @@
 #pragma once
 
-#include "Semaphore.h"
-
 //--------------------------------------------------
-// HCA(High Compression Audio)?N???X
+// HCA(High Compression Audio)クラス
 //--------------------------------------------------
 class clHCA {
 public:
@@ -11,25 +9,25 @@ public:
     clHCA& operator=(clHCA&& other);
     ~clHCA();
 
-    // HCA?`?F?b?N
+    // HCAチェック
     static bool CheckFile(void *data, unsigned int size);
 
-    // ?`?F?b?N?T??
+    // チェックサム
     static unsigned short CheckSum(void *data, int size, unsigned short sum = 0);
 
-    // ?w?b?_???????R???\?[???o??
+    // ヘッダ情報をコンソール出力
     bool PrintInfo(const char *filenameHCA);
 
-    // ??????
+    // 復号化
     bool Decrypt(const char *filenameHCA);
 
-    // ?f?R?[?h????WAVE?t?@?C??????
+    // デコードしてWAVEファイルに保存
     void* DecodeToMemory(size_t& sz, const char *filenameHCA, float volume = 1, int mode = 16, int loop = 0);
     bool DecodeToWavefile(const char *filenameHCA, const char *filenameWAV, float volume = 1, int mode = 16, int loop = 0);
     void* DecodeToMemoryStream(size_t& sz, void *fpHCA, float volume = 1, int mode = 16, int loop = 0);
     bool DecodeToWavefileStream(void *fpHCA, const char *filenameWAV, float volume = 1, int mode = 16, int loop = 0);
 
-    // ?G???R?[?h????HCA?t?@?C??????
+    // エンコードしてHCAファイルに保存
     //bool EncodeFromWavefile(const char *filenameWAV,const char *filenameHCA,float volume=1);
     //bool EncodeFromWavefileStream(void *fpWAV,const char *filenameHCA,float volume=1);
     unsigned int get_channelCount() const;
@@ -37,74 +35,74 @@ public:
     unsigned int get_blockSize() const;
 
 private:
-    struct stHeader {//?t?@?C?????? (?K?{)
+    struct stHeader {//ファイル情報 (必須)
         unsigned int hca;              // 'HCA'
-        unsigned short version;        // ?o?[?W?????Bv1.3??v2.0???????m?F
-        unsigned short dataOffset;     // ?f?[?^?I?t?Z?b?g
+        unsigned short version;        // バージョン。v1.3とv2.0の存在を確認
+        unsigned short dataOffset;     // データオフセット
     };
-    struct stFormat {//?t?H?[?}?b?g???? (?K?{)
+    struct stFormat {//フォーマット情報 (必須)
         unsigned int fmt;              // 'fmt'
-        unsigned int channelCount : 8;   // ?`?????l???? 1?`16
-        unsigned int samplingRate : 24;  // ?T???v?????O???[?g 1?`0x7FFFFF
-        unsigned int blockCount;       // ?u???b?N?? 0???
-        unsigned short muteHeader;     // ???????????(?u???b?N??*0x400+0x80)
-        unsigned short muteFooter;     // ??????????T???v????
+        unsigned int channelCount : 8;   // チャンネル数 1～16
+        unsigned int samplingRate : 24;  // サンプリングレート 1～0x7FFFFF
+        unsigned int blockCount;       // ブロック数 0以上
+        unsigned short muteHeader;     // 先頭の無音部分(ブロック数*0x400+0x80)
+        unsigned short muteFooter;     // 末尾の無音サンプル数
     };
-    struct stCompress {//???k???? (???k?????f?R?[?h????????????????K?{)
+    struct stCompress {//圧縮情報 (圧縮情報かデコード情報のどちらか一つが必須)
         unsigned int comp;             // 'comp'
-        unsigned short blockSize;      // ?u???b?N?T?C?Y(CBR??????L???H) 8?`0xFFFF?A0??????VBR
-        unsigned char r01;             // ?s??(1) 0?`r02      v2.0????1?????
-        unsigned char r02;             // ?s??(15) r01?`0x1F  v2.0????15?????
-        unsigned char r03;             // ?s??(1)(1)
-        unsigned char r04;             // ?s??(1)(0)
-        unsigned char r05;             // ?s??(0x80)(0x80)
-        unsigned char r06;             // ?s??(0x80)(0x20)
-        unsigned char r07;             // ?s??(0)(0x20)
-        unsigned char r08;             // ?s??(0)(8)
-        unsigned char reserve1;        // ?\??
-        unsigned char reserve2;        // ?\??
+        unsigned short blockSize;      // ブロックサイズ(CBRのときに有効？) 8～0xFFFF、0のときはVBR
+        unsigned char r01;             // 不明(1) 0～r02      v2.0現在1のみ対応
+        unsigned char r02;             // 不明(15) r01～0x1F  v2.0現在15のみ対応
+        unsigned char r03;             // 不明(1)(1)
+        unsigned char r04;             // 不明(1)(0)
+        unsigned char r05;             // 不明(0x80)(0x80)
+        unsigned char r06;             // 不明(0x80)(0x20)
+        unsigned char r07;             // 不明(0)(0x20)
+        unsigned char r08;             // 不明(0)(8)
+        unsigned char reserve1;        // 予約
+        unsigned char reserve2;        // 予約
     };
-    struct stDecode {//?f?R?[?h???? (???k?????f?R?[?h????????????????K?{)
+    struct stDecode {//デコード情報 (圧縮情報かデコード情報のどちらか一つが必須)
         unsigned int dec;              // 'dec'
-        unsigned short blockSize;      // ?u???b?N?T?C?Y(CBR??????L???H) 8?`0xFFFF?A0??????VBR
-        unsigned char r01;             // ?s??(1) 0?`r02      v2.0????1?????
-        unsigned char r02;             // ?s??(15) r01?`0x1F  v2.0????15?????
-        unsigned char count1;          // type0??type1???-1
-        unsigned char count2;          // type2???-1
-        unsigned char r03 : 4;           // ?s??(0)
-        unsigned char r04 : 4;           // ?s??(0) 0??1??C????????
-        unsigned char enableCount2;    // count2???g???t???O
+        unsigned short blockSize;      // ブロックサイズ(CBRのときに有効？) 8～0xFFFF、0のときはVBR
+        unsigned char r01;             // 不明(1) 0～r02      v2.0現在1のみ対応
+        unsigned char r02;             // 不明(15) r01～0x1F  v2.0現在15のみ対応
+        unsigned char count1;          // type0とtype1の数-1
+        unsigned char count2;          // type2の数-1
+        unsigned char r03 : 4;           // 不明(0)
+        unsigned char r04 : 4;           // 不明(0) 0は1に修正される
+        unsigned char enableCount2;    // count2を使うフラグ
     };
-    struct stVBR {//??��r?b?g???[?g???? (?p?~?H)
+    struct stVBR {//可変ビットレート情報 (廃止？)
         unsigned int vbr;              // 'vbr'
-        unsigned short r01;            // ?s?? 0?`0x1FF
-        unsigned short r02;            // ?s??
+        unsigned short r01;            // 不明 0～0x1FF
+        unsigned short r02;            // 不明
     };
-    struct stATH {//ATH?e?[?u?????? (v2.0?????p?~?H)
+    struct stATH {//ATHテーブル情報 (v2.0から廃止？)
         unsigned int ath;              // 'ath'
-        unsigned short type;           // ?e?[?u???????(0:?S??0 1:?e?[?u??1)
+        unsigned short type;           // テーブルの種類(0:全て0 1:テーブル1)
     };
-    struct stLoop {//???[?v????
+    struct stLoop {//ループ情報
         unsigned int loop;             // 'loop'
-        unsigned int start;            // ???[?v?J?n?u???b?N?C???f?b?N?X 0?`loopEnd
-        unsigned int end;              // ???[?v?I???u???b?N?C???f?b?N?X loopStart?`(stFormat::blockCount-1)
-        unsigned short count;          // ???[?v???? 0x80????????[?v
-        unsigned short r01;            // ?s??(0x226)
+        unsigned int start;            // ループ開始ブロックインデックス 0～loopEnd
+        unsigned int end;              // ループ終了ブロックインデックス loopStart～(stFormat::blockCount-1)
+        unsigned short count;          // ループ回数 0x80で無限ループ
+        unsigned short r01;            // 不明(0x226) 
     };
-    struct stCipher {//????e?[?u??????
+    struct stCipher {//暗号テーブル情報
         unsigned int ciph;             // 'ciph'
-        unsigned short type;           // ??????????(0:???????? 1:?????????? 0x38:???????????)
+        unsigned short type;           // 暗号化の種類(0:暗号化なし 1:鍵なし暗号化 0x38:鍵あり暗号化)
     };
-    struct stRVA {//????{?????[?????????
+    struct stRVA {//相対ボリューム調節情報
         unsigned int rva;              // 'rva'
-        float volume;                  // ?{?????[??
+        float volume;                  // ボリューム
     };
-    struct stComment {//?R?????g????
+    struct stComment {//コメント情報
         unsigned int comm;             // 'comm'
-        unsigned char len;             // ?R?????g??????H
+        unsigned char len;             // コメントの長さ？
                                        //char comment[];
     };
-    struct stPadding {//?p?f?B???O
+    struct stPadding {//パディング
         unsigned int pad;              // 'pad'
     };
     unsigned int _version;
