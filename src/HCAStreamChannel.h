@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef HCASTREAMCHANNEL_H
+#define HCASTREAMCHANNEL_H
+
 #include <string>
 #include "bass.h"
 #include "HCADecodeService.h"
@@ -30,3 +33,4 @@ private:
 	DWORD flags;
 };
 
+#endif //HCASTREAMCHANNEL_H
