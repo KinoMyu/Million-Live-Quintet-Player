@@ -272,6 +272,8 @@ void MainWindow::save()
     }
     // Stream needs to be paused else the output will be garbled
     BASS_ChannelPause(mix_stream);
+    // Wait for all HCA audio to be decoded
+    dec.wait_for_finish();
     export_to_wav(bgm->get_decode_channel(), idoldecodechannels, bgmVol, idolVol, idolInfo, filename);
     reset();
 }
