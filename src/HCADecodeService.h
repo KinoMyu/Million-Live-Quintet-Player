@@ -10,7 +10,8 @@
 class HCADecodeService
 {
 public:
-	HCADecodeService(unsigned int num_threads);
+    HCADecodeService();
+    HCADecodeService(unsigned int num_threads, unsigned int chunksize);
 	~HCADecodeService();
 	void cancel_decode(void* ptr);
     std::pair<void*, size_t> decode(const std::string& hcafilename, DWORD samplenum);
@@ -19,7 +20,7 @@ private:
 	void Decode_Thread(int id);
 	void Main_Thread();
 	clHCA workingfile;
-	unsigned int numthreads, requestnum, numchannels;
+    unsigned int numthreads, numchannels, chunksize;
 	void* workingrequest;
 	std::thread dispatchthread;
 	std::deque<std::thread> worker_threads;

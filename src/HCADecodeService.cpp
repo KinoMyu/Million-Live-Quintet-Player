@@ -3,10 +3,32 @@
 #include "HCADecodeService.h"
 #include "clHCA.h"
 
-// Currently multithreaded decode is bugged due to out of order decoding
-HCADecodeService::HCADecodeService(unsigned int numthreads)
-    : mainsem(1),
-      numthreads{1}, // Use single thread for now
+HCADecodeService::HCADecodeService()
+    : mainsem(std::thread::hardware_concurrency()),
+      numthreads{std::thread::hardware_concurrency()},
+      chunksize{16},
+      datasem{ 0 },
+      finsem{0},
+      numchannels{0},
+      workingrequest{nullptr},
+      channels{nullptr},
+      shutdown{false}
+{
+    workingblocks = new int[this->numthreads];
+    channels = new clHCA::stChannel[0x10 * this->numthreads];
+    for (unsigned int i = 0; i < this->numthreads; ++i)
+    {
+        workersem.emplace_back(0);
+        worker_threads.emplace_back(&HCADecodeService::Decode_Thread, this, i);
+        workingblocks[i] = -1;
+    }
+    dispatchthread = std::thread{ &HCADecodeService::Main_Thread, this };
+}
+
+HCADecodeService::HCADecodeService(unsigned int numthreads, unsigned int chunksize)
+    : mainsem(numthreads),
+      numthreads{numthreads},
+      chunksize{chunksize},
       datasem{ 0 },
       finsem{0},
       numchannels{0},
@@ -102,8 +124,8 @@ void HCADecodeService::Main_Thread()
         numchannels = workingfile.get_channelCount();
 		workingfile.PrepDecode(channels, numthreads);
 		unsigned int blockCount = workingfile.get_blockCount();
-        // initiate playback right away, and patch up "blip" cause by out of order decoding
-        for (unsigned int i = blocknum, j = 0; j < blockCount + blocknum; ++i, ++j)
+        // initiate playback right away
+        for (unsigned int i = (blocknum/chunksize)*chunksize; i < blockCount + blocknum; i += chunksize)
 		{
             blocks.push_back(i % blockCount);
 		}
@@ -145,7 +167,7 @@ void HCADecodeService::Decode_Thread(int id)
 	while (workingblocks[id] != -1)
 	{
 		mainsem.wait();
-		workingfile.AsyncDecode(channels + (id * numchannels), workingblocks[id], (unsigned char*)workingrequest);
+        workingfile.AsyncDecode(channels + (id * numchannels), workingblocks[id], (unsigned char*)workingrequest, chunksize);
 		workingblocks[id] = -1;
 		mainsem.notify();
 		workersem[id].wait();

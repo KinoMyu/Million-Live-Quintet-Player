@@ -191,7 +191,7 @@ private:
 	};
 	bool PrepDecode(stChannel* channels, unsigned int numthreads);
 	bool Analyze(void*& wavptr, size_t& sz, const char* filenameHCA);
-	void AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, unsigned char* outputwavptr);
+    void AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, unsigned char* outputwavptr, unsigned int chunksize);
 	private:
 	stChannel _channel[0x10];
 	unsigned char* hcafileptr;

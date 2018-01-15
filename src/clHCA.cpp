@@ -644,36 +644,41 @@ bool clHCA::Analyze(void*& wavptr, size_t& sz, const char* filenameHCA)
 	return true;
 }
 
-void clHCA::AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, unsigned char* outputwavptr)
+void clHCA::AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, unsigned char* outputwavptr, unsigned int chunksize)
 {
-	int seekhead = 0;
+    int seekhead = 0;
     outputwavptr += 2 * blocknum * 8 * 128 * _channelCount + 44;
     unsigned char* data = new unsigned char[_blockSize];
-    memcpy(data, (unsigned char*)hcafileptr + (blocknum * _blockSize), _blockSize);
-	//		if(((unsigned char *)data)[_blockSize-2]==0x5E)_asm int 3
-	_cipher.Mask(data, _blockSize);
-	clData d(data, _blockSize);
-	int magic = d.GetBit(16);//0xFFFFŒÅ’è
-	if (magic == 0xFFFF) {
-		int a = (d.GetBit(9) << 8) - d.GetBit(7);
-		for (unsigned int i = 0; i<_channelCount; i++)channelsOffset[i].Decode1(&d, _comp_r09, a, _ath.GetTable());
-		for (int i = 0; i<8; i++) {
-			for (unsigned int j = 0; j<_channelCount; j++)channelsOffset[j].Decode2(&d);
-			for (unsigned int j = 0; j<_channelCount; j++)channelsOffset[j].Decode3(_comp_r09, _comp_r08, _comp_r07 + _comp_r06, _comp_r05);
-			for (unsigned int j = 0; j<_channelCount - 1; j++)channelsOffset[j].Decode4(i, _comp_r05 - _comp_r06, _comp_r06, _comp_r07);
-			for (unsigned int j = 0; j<_channelCount; j++)channelsOffset[j].Decode5(i);
-		}
-	}
-	for (int i = 0; i<8; i++) {
-		for (int j = 0; j<0x80; j++) {
-			for (unsigned int k = 0; k<_channelCount; k++) {
-				float f = channelsOffset[k].wave[i][j];
-				if (f>1) { f = 1; }
-				else if (f<-1) { f = -1; }
-				DecodeToMemory_DecodeMode16bit(f, outputwavptr, seekhead);
-			}
-		}
-	}
+    int x = (blocknum == 0) ? 0 : -1;
+    for (; x < (int)chunksize && blocknum + x < _blockCount; ++x)
+    {
+        memcpy(data, (unsigned char*)hcafileptr + ((blocknum + x) * _blockSize), _blockSize);
+        //		if(((unsigned char *)data)[_blockSize-2]==0x5E)_asm int 3
+        _cipher.Mask(data, _blockSize);
+        clData d(data, _blockSize);
+        int magic = d.GetBit(16);//0xFFFFŒÅ’è
+        if (magic == 0xFFFF) {
+            int a = (d.GetBit(9) << 8) - d.GetBit(7);
+            for (unsigned int i = 0; i < _channelCount; i++)channelsOffset[i].Decode1(&d, _comp_r09, a, _ath.GetTable());
+            for (int i = 0; i < 8; i++) {
+                for (unsigned int j = 0; j < _channelCount; j++)channelsOffset[j].Decode2(&d);
+                for (unsigned int j = 0; j < _channelCount; j++)channelsOffset[j].Decode3(_comp_r09, _comp_r08, _comp_r07 + _comp_r06, _comp_r05);
+                for (unsigned int j = 0; j < _channelCount - 1; j++)channelsOffset[j].Decode4(i, _comp_r05 - _comp_r06, _comp_r06, _comp_r07);
+                for (unsigned int j = 0; j < _channelCount; j++)channelsOffset[j].Decode5(i);
+                if (x >= 0)
+                {
+                    for (int j = 0; j < 0x80; j++) {
+                        for (unsigned int k = 0; k < _channelCount; k++) {
+                            float f = channelsOffset[k].wave[i][j];
+                            if (f > 1) { f = 1; }
+                            else if (f < -1) { f = -1; }
+                            DecodeToMemory_DecodeMode16bit(f, outputwavptr, seekhead);
+                        }
+                    }
+                }
+            }
+        }
+    }
     delete[] data;
 }
 
