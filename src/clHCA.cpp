@@ -652,8 +652,6 @@ void clHCA::AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, void*&
     int x = (blocknum == 0) ? 0 : -1;
     for (; x < (int)chunksize && blocknum + x < _blockCount; ++x)
     {
-        if(outputwavptr == nullptr) break;
-        wavoutsem.wait();
         memcpy(data, (unsigned char*)hcafileptr + ((blocknum + x) * _blockSize), _blockSize);
         //        if(((unsigned char *)data)[_blockSize-2]==0x5E)_asm int 3
         _cipher.Mask(data, _blockSize);
@@ -666,6 +664,13 @@ void clHCA::AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, void*&
                 for (unsigned int j = 0; j < _channelCount; j++)channelsOffset[j].Decode2(&d);
                 for (unsigned int j = 0; j < _channelCount; j++)channelsOffset[j].Decode3(_comp_r09, _comp_r08, _comp_r07 + _comp_r06, _comp_r05);
                 for (unsigned int j = 0; j < _channelCount - 1; j++)channelsOffset[j].Decode4(i, _comp_r05 - _comp_r06, _comp_r06, _comp_r07);
+                wavoutsem.wait();
+                if(outputwavptr == nullptr)
+                {
+                    wavoutsem.notify();
+                    delete[] data;
+                    return;
+                }
                 for (unsigned int j = 0; j < _channelCount; j++)channelsOffset[j].Decode5(i);
                 if (x >= 0)
                 {
@@ -678,9 +683,9 @@ void clHCA::AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, void*&
                         }
                     }
                 }
+                wavoutsem.notify();
             }
         }
-        wavoutsem.notify();
     }
     delete[] data;
 }
