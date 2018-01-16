@@ -650,6 +650,10 @@ void clHCA::AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, void*&
     char* outwavptr = (char*)outputwavptr + 2 * blocknum * 8 * 128 * _channelCount + 44;
     unsigned char* data = new unsigned char[_blockSize];
     int x = (blocknum == 0) ? 0 : -1;
+    if(blocknum == 0)
+    {
+        PrepDecode(channelsOffset, 1);
+    }
     for (; x < (int)chunksize && blocknum + x < _blockCount; ++x)
     {
         memcpy(data, (unsigned char*)hcafileptr + ((blocknum + x) * _blockSize), _blockSize);
