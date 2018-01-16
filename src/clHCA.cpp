@@ -668,16 +668,16 @@ void clHCA::AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, void*&
                 for (unsigned int j = 0; j < _channelCount; j++)channelsOffset[j].Decode2(&d);
                 for (unsigned int j = 0; j < _channelCount; j++)channelsOffset[j].Decode3(_comp_r09, _comp_r08, _comp_r07 + _comp_r06, _comp_r05);
                 for (unsigned int j = 0; j < _channelCount - 1; j++)channelsOffset[j].Decode4(i, _comp_r05 - _comp_r06, _comp_r06, _comp_r07);
-                wavoutsem.wait();
-                if(outputwavptr == nullptr)
-                {
-                    wavoutsem.notify();
-                    delete[] data;
-                    return;
-                }
                 for (unsigned int j = 0; j < _channelCount; j++)channelsOffset[j].Decode5(i);
                 if (x >= 0)
                 {
+                    wavoutsem.wait();
+                    if(outputwavptr == nullptr)
+                    {
+                        wavoutsem.notify();
+                        delete[] data;
+                        return;
+                    }
                     for (int j = 0; j < 0x80; j++) {
                         for (unsigned int k = 0; k < _channelCount; k++) {
                             float f = channelsOffset[k].wave[i][j];
@@ -686,8 +686,8 @@ void clHCA::AsyncDecode(stChannel* channelsOffset, unsigned int blocknum, void*&
                             DecodeToMemory_DecodeMode16bit(f, outwavptr, seekhead);
                         }
                     }
+                    wavoutsem.notify();
                 }
-                wavoutsem.notify();
             }
         }
     }

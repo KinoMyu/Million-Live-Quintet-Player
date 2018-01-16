@@ -130,7 +130,7 @@ void HCADecodeService::Main_Thread()
         filelist.erase(it);
         numchannels = workingfile.get_channelCount();
         workingfile.PrepDecode(channels, numthreads);
-        unsigned int blockCount = workingfile.get_blockCount();
+        unsigned int blockCount = (workingfile.get_blockCount() * (chunksize + 1)) / chunksize;
         // initiate playback right away
         for (unsigned int i = (blocknum/chunksize)*chunksize; i < blockCount + blocknum; i += chunksize)
         {
@@ -161,7 +161,7 @@ void HCADecodeService::Main_Thread()
         }
         finsem.notify();
     }
-    for (int i = 0; i < numthreads; ++i)
+    for (unsigned int i = 0; i < numthreads; ++i)
     {
         workersem[i].notify();
         worker_threads[i].join();
