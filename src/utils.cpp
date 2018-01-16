@@ -1,6 +1,6 @@
 #include <sstream>
 #include <fstream>
-#include "bass.h"
+#include "../bass/bass.h"
 #include "utils.h"
 #include <iostream>
 #include <QString>

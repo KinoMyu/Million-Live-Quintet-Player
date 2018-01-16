@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "bass.h"
-#include "bassmix.h"
+#include "../bass/bass.h"
+#include "../bass/bassmix.h"
 #include "HCAStreamChannel.h"
 #include "utils.h"
 #include <QFileDialog>

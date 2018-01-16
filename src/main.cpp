@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include <QApplication>
-#include "bass.h"
-#include "bassmix.h"
+#include "../bass/bass.h"
+#include "../bass/bassmix.h"
 
 int main(int argc, char *argv[])
 {

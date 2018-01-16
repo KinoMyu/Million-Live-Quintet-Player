@@ -4,7 +4,7 @@
 #define HCASTREAMCHANNEL_H
 
 #include <string>
-#include "bass.h"
+#include "../bass/bass.h"
 #include "HCADecodeService.h"
 
 class HCAStreamChannel

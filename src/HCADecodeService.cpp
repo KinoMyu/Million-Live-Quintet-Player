@@ -1,5 +1,5 @@
 #include <map>
-#include "bass.h"
+#include "../bass/bass.h"
 #include "HCADecodeService.h"
 #include "clHCA.h"
 
