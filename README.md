@@ -20,4 +20,5 @@ Download release version of Quintet Player or rip .hca files directly from MLTD.
 
 # License
 MIT
+
 Feel free to use this software in any way.
