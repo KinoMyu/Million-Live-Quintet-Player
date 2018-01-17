@@ -3,10 +3,20 @@
 #include "HCADecodeService.h"
 #include "clHCA.h"
 
+unsigned int get_hardware_threads()
+{
+    unsigned int threads = std::thread::hardware_concurrency();
+    if(threads == 0)
+    {
+        return 1;
+    }
+    return threads;
+}
+
 HCADecodeService::HCADecodeService()
-    : mainsem(std::thread::hardware_concurrency()),
-      wavoutsem(std::thread::hardware_concurrency()),
-      numthreads{std::thread::hardware_concurrency()},
+    : mainsem(get_hardware_threads()),
+      wavoutsem(get_hardware_threads()),
+      numthreads{get_hardware_threads()},
       chunksize{16},
       datasem{ 0 },
       finsem{0},
