@@ -12,7 +12,8 @@ Quintet player for MLTD using the BASS audio library. HCA decryption code uses a
   1. Download dependencies from http://www.un4seen.com/ (bass and bassmix).
   2. Place bass.h/lib and bassmix.h/lib in bass/.
   3. Open QuintetPlayer.pro in Qt Studio and build.
-This program is technically cross-platform, but has only been tested on Windows.
+
+This program is technically cross-platform, but has only been tested on Windows, so YMMV.
 
 # How to obtain resource files
 Download release version of Quintet Player or rip .hca files directly from MLTD.
