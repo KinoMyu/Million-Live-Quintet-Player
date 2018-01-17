@@ -19,6 +19,5 @@ This program is technically cross-platform, but has only been tested on Windows,
 Download release version of Quintet Player or rip .hca files directly from MLTD.
 
 # License
-MIT
-
+MIT<br>
 Feel free to use this software in any way.
