@@ -1,6 +1,11 @@
 #pragma once
 
+#ifndef CLHCA_H
+#define CLHCA_H
+
 #include "Semaphore.h"
+
+// Copyright (c) 2017 にゃが
 
 //--------------------------------------------------
 // HCA(High Compression Audio)クラス
@@ -207,3 +212,5 @@ private:
     static void DecodeToWavefile_DecodeMode24bit(float f, void *fp);
     static void DecodeToWavefile_DecodeMode32bit(float f, void *fp);
 };
+
+#endif // CLHCA_H
