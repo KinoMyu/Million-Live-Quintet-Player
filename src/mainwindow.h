@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include "HCAStreamChannel.h"
 #include "utils.h"
-#include "HCADecodeService.h"
+#include "../HCADecoder/HCADecodeService.h"
 
 namespace Ui {
 class MainWindow;

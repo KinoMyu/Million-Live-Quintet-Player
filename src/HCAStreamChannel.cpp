@@ -1,5 +1,5 @@
 #include "HCAStreamChannel.h"
-#include "clHCA.h"
+#include "../HCADecoder/clHCA.h"
 
 HCAStreamChannel::HCAStreamChannel(HCADecodeService* dec)
 {
@@ -55,6 +55,12 @@ HCAStreamChannel& HCAStreamChannel::operator=(HCAStreamChannel&& other)
     return *this;
 }
 
+void HCAStreamChannel::wait_for_decode()
+{
+    if(ptr == nullptr) return;
+    dec->wait_on_request(ptr);
+}
+
 void HCAStreamChannel::unload()
 {
     dec->cancel_decode(ptr);
@@ -66,7 +72,7 @@ void HCAStreamChannel::unload()
 
 bool HCAStreamChannel::load(const std::string& filename)
 {
-    auto pair = dec->decode(filename, 0);
+    auto pair = dec->decode(filename.c_str(), 0);
     ptr = pair.first;
     size = pair.second;
     return __load();
@@ -74,7 +80,7 @@ bool HCAStreamChannel::load(const std::string& filename)
 
 bool HCAStreamChannel::load(const std::string& filename, DWORD samplenum)
 {
-    auto pair = dec->decode(filename, samplenum);
+    auto pair = dec->decode(filename.c_str(), samplenum);
     ptr = pair.first;
     size = pair.second;
     return __load();

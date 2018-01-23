@@ -26,18 +26,18 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         src/main.cpp \
         src/mainwindow.cpp \
-    src/clHCA.cpp \
+    HCADecoder/clHCA.cpp \
     src/utils.cpp \
     src/HCAStreamChannel.cpp \
-    src/HCADecodeService.cpp
+    HCADecoder/HCADecodeService.cpp
 
 HEADERS += \
         src/mainwindow.h \
-    src/clHCA.h \
+    HCADecoder/clHCA.h \
     src/utils.h \
     src/HCAStreamChannel.h \
-    src/HCADecodeService.h \
-    src/Semaphore.h \
+    HCADecoder/HCADecodeService.h \
+    HCADecoder/Semaphore.h \
     bass/bass.h \
     bass/bassmix.h
 

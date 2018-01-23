@@ -5,7 +5,7 @@
 
 #include <string>
 #include "../bass/bass.h"
-#include "HCADecodeService.h"
+#include "../HCADecoder/HCADecodeService.h"
 
 class HCAStreamChannel
 {
@@ -15,6 +15,7 @@ public:
     HCAStreamChannel(HCADecodeService* dec, const std::string& filename);
     HCAStreamChannel& operator=(HCAStreamChannel&& other);
     ~HCAStreamChannel();
+    void wait_for_decode();
     void unload();
     bool load(const std::string& filename);
     bool load(const std::string& filename, DWORD samplenum);
