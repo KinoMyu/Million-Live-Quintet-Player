@@ -12,7 +12,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    dec()
+    dec(2)
 {
     ui->setupUi(this);
 
@@ -190,7 +190,7 @@ void MainWindow::setBGM(const QString& qStr)
     std::string name = qStr.toUtf8().constData();
     currSong = readablesong_to_filename[name];
     BASS_ChannelPause(mix_stream);
-    dec.wait_for_finish();
+    //dec.wait_for_finish();
     BASS_Mixer_ChannelRemove(bgm->get_decode_channel());
     bgm->unload();
     bgm->load("res/" + currSong + "/bgm.hca");
