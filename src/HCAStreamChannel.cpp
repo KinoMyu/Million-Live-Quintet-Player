@@ -64,8 +64,8 @@ void HCAStreamChannel::wait_for_decode()
 void HCAStreamChannel::unload()
 {
     dec->cancel_decode(ptr);
-    if (playback_channel != 0) { BASS_ChannelStop(playback_channel); playback_channel = 0; }
-    if (decode_channel != 0) { BASS_ChannelStop(decode_channel); decode_channel = 0; }
+    if (playback_channel != 0) { BASS_StreamFree(playback_channel); playback_channel = 0; }
+    if (decode_channel != 0) { BASS_StreamFree(decode_channel); decode_channel = 0; }
     if (ptr != nullptr) { delete[] ptr; ptr = nullptr; }
     size = 0;
 }
@@ -110,7 +110,7 @@ bool HCAStreamChannel::__load()
         dec->cancel_decode(ptr);
         delete[] ptr;
         ptr = nullptr;
-        BASS_ChannelStop(playback_channel);
+        BASS_StreamFree(playback_channel);
         playback_channel = 0;
         size = 0;
         return false;
@@ -154,7 +154,7 @@ void HCAStreamChannel::make_channels()
     decode_channel = BASS_StreamCreateFile(TRUE, ptr, 0, size, flags | BASS_STREAM_DECODE);
     if (decode_channel == 0)
     {
-        BASS_ChannelStop(playback_channel);
+        BASS_StreamFree(playback_channel);
         playback_channel = 0;
     }
 }
