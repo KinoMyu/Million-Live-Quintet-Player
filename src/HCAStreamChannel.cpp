@@ -44,6 +44,7 @@ HCAStreamChannel& HCAStreamChannel::operator=(HCAStreamChannel&& other)
     unload();
     if (this != &other)
     {
+	    dec = other->dec;
         ptr = other.ptr;
         size = other.size;
         playback_channel = other.playback_channel;
