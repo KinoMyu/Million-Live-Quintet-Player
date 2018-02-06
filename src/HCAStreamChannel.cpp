@@ -15,9 +15,11 @@ HCAStreamChannel::HCAStreamChannel(const HCAStreamChannel& other)
 {
     if (other.ptr == nullptr)
     {
-        HCAStreamChannel(nullptr);
+        HCAStreamChannel(other->dec);
         return;
     }
+	dec = other->dec;
+	flags = other.flags;
     size = other.size;
     ptr = new char[size];
     for (size_t i = 0; i < size; ++i) ((char*)ptr)[i] = ((char*)other.ptr)[i];
