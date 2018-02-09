@@ -361,9 +361,9 @@
    <widget class="QPushButton" name="playButton">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>18</x>
       <y>250</y>
-      <width>75</width>
+      <width>66</width>
       <height>23</height>
      </rect>
     </property>
@@ -382,9 +382,9 @@
    <widget class="QPushButton" name="pauseButton">
     <property name="geometry">
      <rect>
-      <x>100</x>
+      <x>95</x>
       <y>250</y>
-      <width>75</width>
+      <width>66</width>
       <height>23</height>
      </rect>
     </property>
@@ -403,9 +403,9 @@
    <widget class="QPushButton" name="saveButton">
     <property name="geometry">
      <rect>
-      <x>320</x>
+      <x>326</x>
       <y>250</y>
-      <width>75</width>
+      <width>66</width>
       <height>23</height>
      </rect>
     </property>
@@ -418,15 +418,15 @@
      <bool>false</bool>
     </property>
     <property name="text">
-     <string>Save</string>
+     <string>Export</string>
     </property>
    </widget>
    <widget class="QPushButton" name="resetButton">
     <property name="geometry">
      <rect>
-      <x>180</x>
+      <x>172</x>
       <y>250</y>
-      <width>75</width>
+      <width>66</width>
       <height>23</height>
      </rect>
     </property>
@@ -669,6 +669,24 @@
     </property>
     <property name="text">
      <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="randomizeButton">
+    <property name="geometry">
+     <rect>
+      <x>249</x>
+      <y>250</y>
+      <width>66</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Segoe UI</family>
+     </font>
+    </property>
+    <property name="text">
+     <string>Random</string>
     </property>
    </widget>
   </widget>

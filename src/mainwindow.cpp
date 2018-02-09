@@ -5,9 +5,9 @@
 #include "HCAStreamChannel.h"
 #include "utils.h"
 #include <QFileDialog>
-#include <iostream>
 #include <sstream>
 #include <QTextStream>
+#include <set>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -58,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->idolsel2, SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol2(QString)));
     connect(ui->idolsel3, SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol3(QString)));
     connect(ui->idolsel4, SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol4(QString)));
+    connect(ui->randomizeButton, SIGNAL(released()), this, SLOT(randomize()));
     connect(ui->playButton, SIGNAL(released()), this, SLOT(play()));
     connect(ui->pauseButton, SIGNAL(released()), this, SLOT(pause()));
     connect(ui->resetButton, SIGNAL(released()), this, SLOT(reset()));
@@ -152,6 +153,21 @@ void MainWindow::setIdolVol(int value)
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
         fuzzy_adjust_vol_pan(idols[i]->get_decode_channel(), idolInfo[i]);
+    }
+}
+
+void MainWindow::randomize()
+{
+    std::set<int> seenset;
+    int n;
+    for(int i = 0; i < NUM_IDOLS; ++i)
+    {
+        do
+        {
+            n = rand() % (idolsel[i]->count() - 1) + 1;
+        } while(seenset.find(n) != seenset.end());
+        seenset.insert(n);
+        idolsel[i]->setCurrentIndex(n);
     }
 }
 

@@ -15,10 +15,10 @@ HCAStreamChannel::HCAStreamChannel(const HCAStreamChannel& other)
 {
     if (other.ptr == nullptr)
     {
-        HCAStreamChannel(other->dec);
+        HCAStreamChannel(other.dec);
         return;
     }
-	dec = other->dec;
+    dec = other.dec;
 	flags = other.flags;
     size = other.size;
     ptr = new char[size];
@@ -44,7 +44,7 @@ HCAStreamChannel& HCAStreamChannel::operator=(HCAStreamChannel&& other)
     unload();
     if (this != &other)
     {
-	    dec = other->dec;
+        dec = other.dec;
         ptr = other.ptr;
         size = other.size;
         playback_channel = other.playback_channel;

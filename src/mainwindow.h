@@ -33,6 +33,7 @@ public slots:
     void setBGMVol(int value);
     void setIdolVol(int value);
     void setBGM(const QString& qStr);
+    void randomize();
     void setIdol0(const QString& qStr);
     void setIdol1(const QString& qStr);
     void setIdol2(const QString& qStr);
