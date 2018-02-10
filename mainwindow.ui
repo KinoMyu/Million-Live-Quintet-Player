@@ -271,9 +271,9 @@
    <widget class="QComboBox" name="idolsel0">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>9</x>
       <y>40</y>
-      <width>71</width>
+      <width>73</width>
       <height>22</height>
      </rect>
     </property>
@@ -289,9 +289,9 @@
    <widget class="QComboBox" name="idolsel1">
     <property name="geometry">
      <rect>
-      <x>90</x>
+      <x>89</x>
       <y>40</y>
-      <width>71</width>
+      <width>73</width>
       <height>22</height>
      </rect>
     </property>
@@ -307,9 +307,9 @@
    <widget class="QComboBox" name="idolsel2">
     <property name="geometry">
      <rect>
-      <x>170</x>
+      <x>169</x>
       <y>40</y>
-      <width>71</width>
+      <width>73</width>
       <height>22</height>
      </rect>
     </property>
@@ -325,9 +325,9 @@
    <widget class="QComboBox" name="idolsel3">
     <property name="geometry">
      <rect>
-      <x>250</x>
+      <x>249</x>
       <y>40</y>
-      <width>71</width>
+      <width>73</width>
       <height>22</height>
      </rect>
     </property>
@@ -343,9 +343,9 @@
    <widget class="QComboBox" name="idolsel4">
     <property name="geometry">
      <rect>
-      <x>330</x>
+      <x>329</x>
       <y>40</y>
-      <width>71</width>
+      <width>73</width>
       <height>22</height>
      </rect>
     </property>
@@ -363,7 +363,7 @@
      <rect>
       <x>18</x>
       <y>250</y>
-      <width>66</width>
+      <width>70</width>
       <height>23</height>
      </rect>
     </property>
@@ -382,9 +382,9 @@
    <widget class="QPushButton" name="pauseButton">
     <property name="geometry">
      <rect>
-      <x>95</x>
+      <x>94</x>
       <y>250</y>
-      <width>66</width>
+      <width>70</width>
       <height>23</height>
      </rect>
     </property>
@@ -403,9 +403,9 @@
    <widget class="QPushButton" name="saveButton">
     <property name="geometry">
      <rect>
-      <x>326</x>
+      <x>322</x>
       <y>250</y>
-      <width>66</width>
+      <width>70</width>
       <height>23</height>
      </rect>
     </property>
@@ -424,9 +424,9 @@
    <widget class="QPushButton" name="resetButton">
     <property name="geometry">
      <rect>
-      <x>172</x>
+      <x>170</x>
       <y>250</y>
-      <width>66</width>
+      <width>70</width>
       <height>23</height>
      </rect>
     </property>
@@ -445,9 +445,9 @@
    <widget class="QComboBox" name="songsel">
     <property name="geometry">
      <rect>
-      <x>90</x>
+      <x>89</x>
       <y>10</y>
-      <width>151</width>
+      <width>153</width>
       <height>22</height>
      </rect>
     </property>
@@ -551,7 +551,7 @@
      <bool>false</bool>
     </property>
     <property name="text">
-     <string>Song Volume</string>
+     <string>BGM Volume</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
@@ -584,10 +584,10 @@
    <widget class="QLabel" name="idolimage0">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>9</x>
       <y>70</y>
-      <width>71</width>
-      <height>71</height>
+      <width>73</width>
+      <height>73</height>
      </rect>
     </property>
     <property name="font">
@@ -602,10 +602,10 @@
    <widget class="QLabel" name="idolimage1">
     <property name="geometry">
      <rect>
-      <x>90</x>
+      <x>89</x>
       <y>70</y>
-      <width>71</width>
-      <height>71</height>
+      <width>73</width>
+      <height>73</height>
      </rect>
     </property>
     <property name="font">
@@ -620,10 +620,10 @@
    <widget class="QLabel" name="idolimage2">
     <property name="geometry">
      <rect>
-      <x>170</x>
+      <x>169</x>
       <y>70</y>
-      <width>71</width>
-      <height>71</height>
+      <width>73</width>
+      <height>73</height>
      </rect>
     </property>
     <property name="font">
@@ -638,10 +638,10 @@
    <widget class="QLabel" name="idolimage3">
     <property name="geometry">
      <rect>
-      <x>250</x>
+      <x>249</x>
       <y>70</y>
-      <width>71</width>
-      <height>71</height>
+      <width>73</width>
+      <height>73</height>
      </rect>
     </property>
     <property name="font">
@@ -656,10 +656,10 @@
    <widget class="QLabel" name="idolimage4">
     <property name="geometry">
      <rect>
-      <x>330</x>
+      <x>329</x>
       <y>70</y>
-      <width>71</width>
-      <height>71</height>
+      <width>73</width>
+      <height>73</height>
      </rect>
     </property>
     <property name="font">
@@ -674,9 +674,9 @@
    <widget class="QPushButton" name="randomizeButton">
     <property name="geometry">
      <rect>
-      <x>249</x>
+      <x>246</x>
       <y>250</y>
-      <width>66</width>
+      <width>70</width>
       <height>23</height>
      </rect>
     </property>

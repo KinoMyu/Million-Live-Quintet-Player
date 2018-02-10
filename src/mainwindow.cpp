@@ -67,7 +67,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->unitButton, SIGNAL(toggled(bool)), this, SLOT(setUnit(bool)));
 
     parse_names(readablesong_to_filename, "res/songlist.txt", &(ui->songsel), 1);
-    parse_names(readableidol_to_filename, "res/idollist.txt", idolsel, NUM_IDOLS);
 
     updateTimerId = startTimer(50);
 }
@@ -105,6 +104,10 @@ void MainWindow::updateUIPosition()
     QString result;
     QTextStream(&result) << "Position: " << p/60 << QString(":%1").arg(p%60, 2, 10, QChar('0')) << "/" << l/60 << QString(":%1").arg(l%60, 2, 10, QChar('0'));
     ui->statusBar->showMessage(result);
+    if( pos >= len )
+    {
+        pause();
+    }
 }
 
 void MainWindow::updateIdolActivity()
@@ -173,49 +176,66 @@ void MainWindow::randomize()
 
 void MainWindow::setIdol0(const QString& qStr)
 {
-    currIdols[0] = readableidol_to_filename[qStr.toUtf8().constData()];
+    currIdols[0] = qStr.toLocal8Bit().constData();
     setIdol(0);
 }
 
 void MainWindow::setIdol1(const QString& qStr)
 {
-    currIdols[1] = readableidol_to_filename[qStr.toUtf8().constData()];
+    currIdols[1] = qStr.toLocal8Bit().constData();
     setIdol(1);
 }
 
 void MainWindow::setIdol2(const QString& qStr)
 {
-    currIdols[2] = readableidol_to_filename[qStr.toUtf8().constData()];
+    currIdols[2] = qStr.toLocal8Bit().constData();
     setIdol(2);
 }
 
 void MainWindow::setIdol3(const QString& qStr)
 {
-    currIdols[3] = readableidol_to_filename[qStr.toUtf8().constData()];
+    currIdols[3] = qStr.toLocal8Bit().constData();
     setIdol(3);
 }
 
 void MainWindow::setIdol4(const QString& qStr)
 {
-    currIdols[4] = readableidol_to_filename[qStr.toUtf8().constData()];
+    currIdols[4] = qStr.toLocal8Bit().constData();
     setIdol(4);
 }
 
 void MainWindow::setBGM(const QString& qStr)
 {
-    std::string name = qStr.toUtf8().constData();
-    currSong = readablesong_to_filename[name];
+    currSong = qStr.toLocal8Bit().constData();
+    std::string convSongName = readablesong_to_filename[currSong];
     BASS_ChannelPause(mix_stream);
     //dec.wait_for_finish();
     BASS_Mixer_ChannelRemove(bgm->get_decode_channel());
     bgm->unload();
-    bgm->load("res/" + currSong + "/bgm.hca");
+    bgm->load("res/" + convSongName + "/bgm.hca");
     BASS_Mixer_StreamAddChannel(mix_stream, bgm->get_decode_channel(), 0);
     BASS_Mixer_ChannelSetPosition(bgm->get_decode_channel(), 0, BASS_POS_BYTE | BASS_POS_MIXER_RESET);
     BASS_ChannelSetAttribute(bgm->get_decode_channel(),BASS_ATTRIB_VOL,bgmVol);
-    parse_control_file(idolInfo, "res/" + currSong + "/control" + (solo?"solo":"") + ".txt", idolVol);
+    parse_control_file(idolInfo, "res/" + convSongName + "/control" + (solo?"solo":"") + ".txt", idolVol);
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
+        idolsel[i]->blockSignals(true);
+        idolsel[i]->clear();
+    }
+    parse_names(readableidol_to_filename, "res/" + convSongName + "/idollist.txt", idolsel, NUM_IDOLS);
+    for(int i = 0; i < NUM_IDOLS; ++i)
+    {
+        idolsel[i]->blockSignals(false);
+        int index = idolsel[i]->findText(QString::fromStdString(currIdols[i]));
+        if(index == -1)
+        {
+            idolsel[i]->setCurrentIndex(0);
+            currIdols[i] = idolsel[i]->currentText().toLocal8Bit().constData();
+        }
+        else
+        {
+            idolsel[i]->setCurrentIndex(index);
+        }
         setIdol(i);
     }
 }
@@ -275,8 +295,8 @@ void MainWindow::reset()
 
 void MainWindow::save()
 {
-    QString qFilename = QFileDialog::getSaveFileName(this, tr("Save file"), "", tr("Wave file (*.wav)"));
-    std::string filename = qFilename.toUtf8().constData();
+    QString qFilename = QFileDialog::getSaveFileName(this, "Export to WAV", "", "Wave file (*.wav)");
+    std::string filename = qFilename.toLocal8Bit().constData();
     if(filename == "")
     {
         return;
@@ -286,23 +306,25 @@ void MainWindow::save()
     {
         idoldecodechannels[i] = idols[i]->get_decode_channel();
     }
-    // Stream needs to be paused else the output will be garbled
-    BASS_ChannelPause(mix_stream);
     // Wait for all HCA audio to be decoded
     dec.wait_for_finish();
+    // Stream needs to be paused else the output will be garbled
+    BASS_ChannelPause(mix_stream);
     export_to_wav(bgm->get_decode_channel(), idoldecodechannels, bgmVol, idolVol, idolInfo, filename);
     reset();
 }
 
 void MainWindow::setIdol(int index)
 {
-    QString filename = QString::fromStdString("res/img/" + currIdols[index] + ".png");
+    std::string convIdolName = readableidol_to_filename[currIdols[index]];
+    std::string convSongName = readablesong_to_filename[currSong];
+    QString filename = QString::fromStdString("res/img/" + convIdolName + ".png");
     idolpixmap[index] = QPixmap(filename);
     idolimg[index]->setPixmap(idolpixmap[index]);
     DWORD oldchan = idols[index]->get_decode_channel();
     HCAStreamChannel&& hcastream = HCAStreamChannel(&dec);
     DWORD pos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
-    hcastream.load("res/" + currSong + "/" + currIdols[index] + ".hca", pos/4);
+    hcastream.load("res/" + convSongName + "/" + convIdolName + ".hca", pos/4);
     if(solo && index != 2)
     {
         hcastream.destroy_channels();
@@ -325,6 +347,7 @@ void MainWindow::setIdol(int index)
 
 void MainWindow::setUnit(bool checked)
 {
+    std::string convSongName = readablesong_to_filename[currSong];
     if(solo && checked)
     {
         solo = false;
@@ -337,7 +360,7 @@ void MainWindow::setUnit(bool checked)
             idolInfo[i].second.clear();
         }
         // Set control and volume
-        parse_control_file(idolInfo, "res/" + currSong + "/control.txt", idolVol);
+        parse_control_file(idolInfo, "res/" + convSongName + "/control.txt", idolVol);
         DWORD idoldecodechannels[NUM_IDOLS];
         for(int i = 0; i < NUM_IDOLS; ++i)
         {
@@ -353,6 +376,7 @@ void MainWindow::setUnit(bool checked)
 
 void MainWindow::setSolo(bool checked)
 {
+    std::string convSongName = readablesong_to_filename[currSong];
     if(!solo && checked)
     {
         solo = true;
@@ -371,7 +395,7 @@ void MainWindow::setSolo(bool checked)
             idolInfo[i].second.clear();
         }
         // Set control and volume
-        parse_control_file(idolInfo, "res/" + currSong + "/controlsolo.txt", idolVol);
+        parse_control_file(idolInfo, "res/" + convSongName + "/controlsolo.txt", idolVol);
         fuzzy_adjust_vol_pan(idols[2]->get_decode_channel(), idolInfo[2]);
         set_auto_vol_pan(idolInfo[2], idols[2]->get_decode_channel());
     }
