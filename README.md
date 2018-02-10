@@ -9,6 +9,10 @@ Quintet player for MLTD using the BASS audio library. HCA decryption code uses a
   - Playback seeking
   - Multithreaded CRIWARE HCA decode
 
+# TODO
+ - UTF-8 support
+ - Round robin decode task scheduler
+
 # How to build
   1. Download dependencies from http://www.un4seen.com/ (bass and bassmix).
   2. Place bass.h/lib and bassmix.h/lib in bass/.
