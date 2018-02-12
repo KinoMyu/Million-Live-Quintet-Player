@@ -1,5 +1,5 @@
-#include "mainwindow.h"
 #include <QApplication>
+#include "mainwindow.h"
 #include "../bass/bass.h"
 #include "../bass/bassmix.h"
 

@@ -1,9 +1,9 @@
+#include <QString>
 #include <sstream>
+#include <iostream>
 #include <fstream>
 #include "../bass/bass.h"
 #include "utils.h"
-#include <iostream>
-#include <QString>
 
 short safeadd(const short& a, const short& b)
 {

@@ -1,13 +1,13 @@
+#include <QFileDialog>
+#include <QTextStream>
+#include <sstream>
+#include <set>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "../bass/bass.h"
 #include "../bass/bassmix.h"
 #include "HCAStreamChannel.h"
 #include "utils.h"
-#include <QFileDialog>
-#include <sstream>
-#include <QTextStream>
-#include <set>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
     dec(2)
 {
     ui->setupUi(this);
+    srand((unsigned int)time(NULL));
 
     mix_stream = BASS_Mixer_StreamCreate(44100,2,0);
     idol_mix_stream = BASS_Mixer_StreamCreate(44100,2,BASS_STREAM_DECODE);
@@ -230,13 +231,18 @@ void MainWindow::setBGM(const QString& qStr)
         if(index == -1)
         {
             idolsel[i]->setCurrentIndex(0);
-            currIdols[i] = idolsel[i]->currentText().toLocal8Bit().constData();
+            std::string convIdolName = readableidol_to_filename[idolsel[i]->currentText().toLocal8Bit().constData()];
+            QString filename = QString::fromStdString("res/img/" + convIdolName + ".png");
+            idolpixmap[i] = QPixmap(filename);
+            idolimg[i]->setPixmap(idolpixmap[i]);
+            BASS_Mixer_ChannelRemove(idols[i]->get_decode_channel());
+            idols[i]->unload();
         }
         else
         {
             idolsel[i]->setCurrentIndex(index);
+            setIdol(i);
         }
-        setIdol(i);
     }
 }
 
