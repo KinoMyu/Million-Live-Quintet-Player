@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include "../bass/bass.h"
 #include "utils.h"
 
@@ -10,6 +11,13 @@ short safeadd(const short& a, const short& b)
     if ((b > 0) && (a > SHRT_MAX - b)) return SHRT_MAX;
     if ((b < 0) && (a < SHRT_MIN - b)) return SHRT_MIN;
     return a + b;
+}
+
+double clamp(const double& d, const double& lower, const double& upper)
+{
+    if(d < lower) return lower;
+    if(d > upper) return upper;
+    return d;
 }
 
 void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double& idolVol, ControlInfo idolControlInfo[], const std::string& filename)
@@ -95,7 +103,7 @@ void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double&
 
 void parse_control_file(ControlInfo idolInfo[], const std::string & control_file, double& idolVol)
 {
-    double volTable[] = { 0.75, 0.62, 0.53, 0.47, 0.42 };
+    double volTable[] = { 0.75, 0.62, 0.55, 0.47, 0.42, 0.39, 0.37, 0.35, 0.33, 0.31, 0.3, 0.29, 0.28 };
     VolumePan idolvolpan[NUM_IDOLS];
     std::ifstream infilestream(control_file);
     std::string line;
@@ -113,10 +121,12 @@ void parse_control_file(ControlInfo idolInfo[], const std::string & control_file
         {
             idolvolpan[i] = { 0, 0 };
         }
-        int numIdols = line.length() - 1;
-        for (int i = 0; i <= numIdols; ++i)
+        size_t n = std::count(line.begin(), line.end(), 'x');
+        int numIdols = (int)line.length() - 1 - n;
+        for (int i = 0; i <= (int)line.length() - 1; ++i)
         {
-            idolvolpan[line.at(i) - 48] = { volTable[numIdols], -0.2 * (numIdols / 2.0 - i) };
+            if(line.at(i) != 'x')
+                idolvolpan[line.at(i) - 48] = { volTable[numIdols], clamp(-0.15 * ((line.length() - 1) / 2.0 - i), -1, 1) };
         }
         for (int i = 0; i < NUM_IDOLS; ++i)
         {

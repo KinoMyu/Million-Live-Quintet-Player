@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <QComboBox>
 
-#define NUM_IDOLS 5
+#define NUM_IDOLS 13
 
 struct VolumePan
 {
@@ -14,6 +14,7 @@ struct VolumePan
 typedef std::pair<double*, std::map<DWORD, VolumePan>> ControlInfo;
 
 short safeadd(const short& a, const short& b);
+double clamp(const double& d, const double& lower, const double& upper);
 void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double& idolVol, ControlInfo idolControlInfo[], const std::string& filename);
 void parse_control_file(ControlInfo idolInfo[], const std::string& control_file, double& idolVol);
 void convert_to_left_right(VolumePan vp, double& leftVol, double& rightVol);

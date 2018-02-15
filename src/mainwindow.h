@@ -28,6 +28,7 @@ public:
     void setIdol(int index);
     void updateUIPosition();
     void updateIdolActivity();
+    void reautomateVolumes();
 
 public slots:
     void setBGMVol(int value);
@@ -39,6 +40,14 @@ public slots:
     void setIdol2(const QString& qStr);
     void setIdol3(const QString& qStr);
     void setIdol4(const QString& qStr);
+    void setIdol5(const QString& qStr);
+    void setIdol6(const QString& qStr);
+    void setIdol7(const QString& qStr);
+    void setIdol8(const QString& qStr);
+    void setIdol9(const QString& qStr);
+    void setIdol10(const QString& qStr);
+    void setIdol11(const QString& qStr);
+    void setIdol12(const QString& qStr);
     void setPosition(int value);
     void play();
     void pause();
@@ -46,13 +55,14 @@ public slots:
     void save();
     void setUnit(bool checked);
     void setSolo(bool checked);
+    void set13(bool checked);
 
 private:
     Ui::MainWindow *ui;
+    int unitsize;
     double bgmVol;
     double idolVol;
     int updateTimerId;
-    bool solo;
     HCAStreamChannel* bgm;
     HCAStreamChannel* idols[NUM_IDOLS];
     ControlInfo idolInfo[NUM_IDOLS];

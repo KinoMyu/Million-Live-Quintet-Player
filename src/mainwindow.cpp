@@ -21,25 +21,49 @@ MainWindow::MainWindow(QWidget *parent) :
     idol_mix_stream = BASS_Mixer_StreamCreate(44100,2,BASS_STREAM_DECODE);
     BASS_Mixer_StreamAddChannel(mix_stream, idol_mix_stream, 0);
 
+    unitsize = 5;
     idolsel[0] = ui->idolsel0;
     idolsel[1] = ui->idolsel1;
     idolsel[2] = ui->idolsel2;
     idolsel[3] = ui->idolsel3;
     idolsel[4] = ui->idolsel4;
+    idolsel[5] = ui->idolsel5;
+    idolsel[6] = ui->idolsel6;
+    idolsel[7] = ui->idolsel7;
+    idolsel[8] = ui->idolsel8;
+    idolsel[9] = ui->idolsel9;
+    idolsel[10] = ui->idolsel10;
+    idolsel[11] = ui->idolsel11;
+    idolsel[12] = ui->idolsel12;
     idolactivity[0] = ui->idolactive0;
     idolactivity[1] = ui->idolactive1;
     idolactivity[2] = ui->idolactive2;
     idolactivity[3] = ui->idolactive3;
     idolactivity[4] = ui->idolactive4;
+    idolactivity[5] = ui->idolactive5;
+    idolactivity[6] = ui->idolactive6;
+    idolactivity[7] = ui->idolactive7;
+    idolactivity[8] = ui->idolactive8;
+    idolactivity[9] = ui->idolactive9;
+    idolactivity[10] = ui->idolactive10;
+    idolactivity[11] = ui->idolactive11;
+    idolactivity[12] = ui->idolactive12;
     idolimg[0] = ui->idolimage0;
     idolimg[1] = ui->idolimage1;
     idolimg[2] = ui->idolimage2;
     idolimg[3] = ui->idolimage3;
     idolimg[4] = ui->idolimage4;
+    idolimg[5] = ui->idolimage5;
+    idolimg[6] = ui->idolimage6;
+    idolimg[7] = ui->idolimage7;
+    idolimg[8] = ui->idolimage8;
+    idolimg[9] = ui->idolimage9;
+    idolimg[10] = ui->idolimage10;
+    idolimg[11] = ui->idolimage11;
+    idolimg[12] = ui->idolimage12;
 
     bgmVol = 0.6;
     idolVol = 0.6;
-    solo = false;
 
     bgm = new HCAStreamChannel(&dec);
     currSong = "";
@@ -54,11 +78,19 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->idolSlider, SIGNAL(valueChanged(int)), this, SLOT(setIdolVol(int)));
     connect(ui->positionSlider, SIGNAL(valueChanged(int)), this, SLOT(setPosition(int)));
     connect(ui->songsel, SIGNAL(currentIndexChanged(QString)), this, SLOT(setBGM(QString)));
-    connect(ui->idolsel0, SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol0(QString)));
-    connect(ui->idolsel1, SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol1(QString)));
-    connect(ui->idolsel2, SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol2(QString)));
-    connect(ui->idolsel3, SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol3(QString)));
-    connect(ui->idolsel4, SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol4(QString)));
+    connect(idolsel[0], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol0(QString)));
+    connect(idolsel[1], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol1(QString)));
+    connect(idolsel[2], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol2(QString)));
+    connect(idolsel[3], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol3(QString)));
+    connect(idolsel[4], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol4(QString)));
+    connect(idolsel[5], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol5(QString)));
+    connect(idolsel[6], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol6(QString)));
+    connect(idolsel[7], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol7(QString)));
+    connect(idolsel[8], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol8(QString)));
+    connect(idolsel[9], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol9(QString)));
+    connect(idolsel[10], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol10(QString)));
+    connect(idolsel[11], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol11(QString)));
+    connect(idolsel[12], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol12(QString)));
     connect(ui->randomizeButton, SIGNAL(released()), this, SLOT(randomize()));
     connect(ui->playButton, SIGNAL(released()), this, SLOT(play()));
     connect(ui->pauseButton, SIGNAL(released()), this, SLOT(pause()));
@@ -66,6 +98,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->saveButton, SIGNAL(released()), this, SLOT(save()));
     connect(ui->soloButton, SIGNAL(toggled(bool)), this, SLOT(setSolo(bool)));
     connect(ui->unitButton, SIGNAL(toggled(bool)), this, SLOT(setUnit(bool)));
+    connect(ui->unitButton13, SIGNAL(toggled(bool)), this, SLOT(set13(bool)));
 
     parse_names(readablesong_to_filename, "res/songlist.txt", &(ui->songsel), 1);
 
@@ -97,7 +130,7 @@ void MainWindow::updateUIPosition()
     if(!ui->positionSlider->isSliderDown())
     {
         ui->positionSlider->blockSignals(true);
-        ui->positionSlider->setValue((double)pos/len*500);
+        ui->positionSlider->setValue((double)pos/len*ui->positionSlider->maximum());
         ui->positionSlider->blockSignals(false);
     }
     DWORD p = BASS_ChannelBytes2Seconds(bgm->get_decode_channel(),pos);
@@ -164,7 +197,7 @@ void MainWindow::randomize()
 {
     std::set<int> seenset;
     int n;
-    for(int i = 0; i < NUM_IDOLS; ++i)
+    for(int i = 0; i < unitsize; ++i)
     {
         do
         {
@@ -205,6 +238,53 @@ void MainWindow::setIdol4(const QString& qStr)
     setIdol(4);
 }
 
+void MainWindow::setIdol5(const QString& qStr)
+{
+    currIdols[5] = qStr.toLocal8Bit().constData();
+    setIdol(5);
+}
+
+void MainWindow::setIdol6(const QString& qStr)
+{
+    currIdols[6] = qStr.toLocal8Bit().constData();
+    setIdol(6);
+}
+
+void MainWindow::setIdol7(const QString& qStr)
+{
+    currIdols[7] = qStr.toLocal8Bit().constData();
+    setIdol(7);
+}
+
+void MainWindow::setIdol8(const QString& qStr)
+{
+    currIdols[8] = qStr.toLocal8Bit().constData();
+    setIdol(8);
+}
+
+void MainWindow::setIdol9(const QString& qStr)
+{
+    currIdols[9] = qStr.toLocal8Bit().constData();
+    setIdol(9);
+}
+void MainWindow::setIdol10(const QString& qStr)
+{
+    currIdols[10] = qStr.toLocal8Bit().constData();
+    setIdol(10);
+}
+
+void MainWindow::setIdol11(const QString& qStr)
+{
+    currIdols[11] = qStr.toLocal8Bit().constData();
+    setIdol(11);
+}
+
+void MainWindow::setIdol12(const QString& qStr)
+{
+    currIdols[12] = qStr.toLocal8Bit().constData();
+    setIdol(12);
+}
+
 void MainWindow::setBGM(const QString& qStr)
 {
     currSong = qStr.toLocal8Bit().constData();
@@ -217,7 +297,7 @@ void MainWindow::setBGM(const QString& qStr)
     BASS_Mixer_StreamAddChannel(mix_stream, bgm->get_decode_channel(), 0);
     BASS_Mixer_ChannelSetPosition(bgm->get_decode_channel(), 0, BASS_POS_BYTE | BASS_POS_MIXER_RESET);
     BASS_ChannelSetAttribute(bgm->get_decode_channel(),BASS_ATTRIB_VOL,bgmVol);
-    parse_control_file(idolInfo, "res/" + convSongName + "/control" + (solo?"solo":"") + ".txt", idolVol);
+    parse_control_file(idolInfo, "res/" + convSongName + "/control" + std::to_string(unitsize) + ".txt", idolVol);
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
         idolsel[i]->blockSignals(true);
@@ -331,7 +411,7 @@ void MainWindow::setIdol(int index)
     HCAStreamChannel&& hcastream = HCAStreamChannel(&dec);
     DWORD pos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
     hcastream.load("res/" + convSongName + "/" + convIdolName + ".hca", pos/4);
-    if(solo && index != 2)
+    if(index >= unitsize)
     {
         hcastream.destroy_channels();
     }
@@ -353,56 +433,48 @@ void MainWindow::setIdol(int index)
 
 void MainWindow::setUnit(bool checked)
 {
-    std::string convSongName = readablesong_to_filename[currSong];
-    if(solo && checked)
+    if(unitsize!=5 && checked)
     {
-        solo = false;
-        for(int i = 0; i < NUM_IDOLS; ++i)
-        {
-            // Don't unload, rather just cleanup channels
-            BASS_Mixer_ChannelRemove(idols[i]->get_decode_channel());
-            idols[i]->destroy_channels();
-            idols[i]->make_channels();
-            idolInfo[i].second.clear();
-        }
-        // Set control and volume
-        parse_control_file(idolInfo, "res/" + convSongName + "/control.txt", idolVol);
-        DWORD idoldecodechannels[NUM_IDOLS];
-        for(int i = 0; i < NUM_IDOLS; ++i)
-        {
-            idoldecodechannels[i] = idols[i]->get_decode_channel();
-            DWORD position = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
-            BASS_ChannelSetPosition(idols[i]->get_decode_channel(), position / 2, BASS_POS_BYTE);
-            BASS_Mixer_StreamAddChannel(idol_mix_stream, idols[i]->get_decode_channel(), 0);
-            fuzzy_adjust_vol_pan(idoldecodechannels[i], idolInfo[i]);
-        }
-        set_auto_vol_pan_all(idolInfo, idoldecodechannels);
+        unitsize = 5;
+        reautomateVolumes();
     }
 }
 
 void MainWindow::setSolo(bool checked)
 {
-    std::string convSongName = readablesong_to_filename[currSong];
-    if(!solo && checked)
+    if(unitsize!=1 && checked)
     {
-        solo = true;
-        for(int i = 0; i < NUM_IDOLS; ++i)
+        unitsize = 1;
+        reautomateVolumes();
+    }
+}
+
+void MainWindow::set13(bool checked)
+{
+    if(unitsize!=13 && checked)
+    {
+        unitsize = 13;
+        reautomateVolumes();
+    }
+}
+
+void MainWindow::reautomateVolumes()
+{
+    std::string convSongName = readablesong_to_filename[currSong];
+    parse_control_file(idolInfo, "res/" + convSongName + "/control" + std::to_string(unitsize) + ".txt", idolVol);
+    for(int i = 0; i < NUM_IDOLS; ++i)
+    {
+        // Don't unload, rather just cleanup channels
+        BASS_Mixer_ChannelRemove(idols[i]->get_decode_channel());
+        idols[i]->destroy_channels();
+        if(i < unitsize)
         {
-            // Don't unload, rather just cleanup channels
-            BASS_Mixer_ChannelRemove(idols[i]->get_decode_channel());
-            idols[i]->destroy_channels();
-            if(i == 2)
-            {
-                idols[i]->make_channels();
-                DWORD position = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
-                BASS_ChannelSetPosition(idols[i]->get_decode_channel(), position / 2, BASS_POS_BYTE);
-            }
+            idols[i]->make_channels();
+            DWORD position = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
+            BASS_ChannelSetPosition(idols[i]->get_decode_channel(), position / 2, BASS_POS_BYTE);
+            fuzzy_adjust_vol_pan(idols[i]->get_decode_channel(), idolInfo[i]);
+            set_auto_vol_pan(idolInfo[i], idols[i]->get_decode_channel());
             BASS_Mixer_StreamAddChannel(idol_mix_stream, idols[i]->get_decode_channel(), 0);
-            idolInfo[i].second.clear();
         }
-        // Set control and volume
-        parse_control_file(idolInfo, "res/" + convSongName + "/controlsolo.txt", idolVol);
-        fuzzy_adjust_vol_pan(idols[2]->get_decode_channel(), idolInfo[2]);
-        set_auto_vol_pan(idolInfo[2], idols[2]->get_decode_channel());
     }
 }
