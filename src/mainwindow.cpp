@@ -9,19 +9,11 @@
 #include "HCAStreamChannel.h"
 #include "utils.h"
 
-#include <iostream>
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     dec(2)
 {
-    ui->setupUi(this);
-    srand((unsigned int)time(NULL));
-
-    mix_stream = BASS_Mixer_StreamCreate(44100,2,0);
-    idol_mix_stream = BASS_Mixer_StreamCreate(44100,2,BASS_STREAM_DECODE);
-    BASS_Mixer_StreamAddChannel(mix_stream, idol_mix_stream, 0);
     QString locale = QLocale::system().name();
     if(locale == "ja_JP")
     {
@@ -31,6 +23,12 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         langString = "";
     }
+    ui->setupUi(this);
+    srand((unsigned int)time(NULL));
+
+    mix_stream = BASS_Mixer_StreamCreate(44100,2,0);
+    idol_mix_stream = BASS_Mixer_StreamCreate(44100,2,BASS_STREAM_DECODE);
+    BASS_Mixer_StreamAddChannel(mix_stream, idol_mix_stream, 0);
 
     unitsize = 5;
     idolsel[0] = ui->idolsel0;

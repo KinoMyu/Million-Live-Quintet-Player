@@ -49,4 +49,4 @@ unix|win32: LIBS += -L$$PWD/bass/ -lbass -lbassmix
 INCLUDEPATH += $$PWD/.
 DEPENDPATH += $$PWD/.
 
-TRANSLATIONS = QuintetPlayer_jp.ts
+TRANSLATIONS = QuintetPlayer_ja.ts
