@@ -9,6 +9,8 @@
 #include "HCAStreamChannel.h"
 #include "utils.h"
 
+#include <iostream>
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -20,6 +22,15 @@ MainWindow::MainWindow(QWidget *parent) :
     mix_stream = BASS_Mixer_StreamCreate(44100,2,0);
     idol_mix_stream = BASS_Mixer_StreamCreate(44100,2,BASS_STREAM_DECODE);
     BASS_Mixer_StreamAddChannel(mix_stream, idol_mix_stream, 0);
+    QString locale = QLocale::system().name();
+    if(locale == "ja_JP")
+    {
+        langString = "jp";
+    }
+    else
+    {
+        langString = "";
+    }
 
     unitsize = 5;
     idolsel[0] = ui->idolsel0;
@@ -100,7 +111,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->unitButton, SIGNAL(toggled(bool)), this, SLOT(setUnit(bool)));
     connect(ui->unitButton13, SIGNAL(toggled(bool)), this, SLOT(set13(bool)));
 
-    parse_names(readablesong_to_filename, "res/songlist.txt", &(ui->songsel), 1);
+    parse_names(readablesong_to_filename, "res/songlist" + langString + ".txt", &(ui->songsel), 1);
 
     updateTimerId = startTimer(50);
 }
@@ -303,7 +314,7 @@ void MainWindow::setBGM(const QString& qStr)
         idolsel[i]->blockSignals(true);
         idolsel[i]->clear();
     }
-    parse_names(readableidol_to_filename, "res/" + convSongName + "/idollist.txt", idolsel, NUM_IDOLS);
+    parse_names(readableidol_to_filename, "res/" + convSongName + "/idollist" + langString + ".txt", idolsel, NUM_IDOLS);
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
         idolsel[i]->blockSignals(false);

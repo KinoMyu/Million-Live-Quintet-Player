@@ -60,7 +60,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -84,7 +84,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -108,7 +108,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -132,7 +132,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -156,7 +156,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -186,7 +186,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -213,7 +213,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -246,7 +246,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -279,7 +279,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -297,7 +297,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -315,7 +315,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -333,7 +333,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -351,7 +351,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -369,7 +369,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -390,7 +390,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -411,7 +411,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -432,7 +432,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -453,7 +453,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -474,7 +474,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -495,7 +495,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -519,15 +519,15 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
-      <pointsize>12</pointsize>
+      <family>Meiryo UI</family>
+      <pointsize>11</pointsize>
      </font>
     </property>
     <property name="mouseTracking">
      <bool>false</bool>
     </property>
     <property name="text">
-     <string>Song :</string>
+     <string>Song:</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -544,7 +544,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -568,7 +568,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -592,7 +592,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="text">
@@ -610,7 +610,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="text">
@@ -628,7 +628,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="text">
@@ -646,7 +646,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="text">
@@ -664,7 +664,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="text">
@@ -682,7 +682,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="text">
@@ -703,7 +703,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -724,7 +724,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -742,7 +742,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="text">
@@ -760,7 +760,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="text">
@@ -778,7 +778,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="text">
@@ -799,7 +799,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -823,7 +823,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -844,7 +844,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -862,7 +862,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -880,7 +880,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -901,7 +901,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -922,7 +922,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="text">
@@ -943,7 +943,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -964,7 +964,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -982,7 +982,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="text">
@@ -1000,7 +1000,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="text">
@@ -1018,7 +1018,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="text">
@@ -1039,7 +1039,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -1063,7 +1063,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -1084,7 +1084,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -1102,7 +1102,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -1120,7 +1120,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -1141,7 +1141,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">
@@ -1162,7 +1162,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="text">
@@ -1180,7 +1180,7 @@
     </property>
     <property name="font">
      <font>
-      <family>Segoe UI</family>
+      <family>Meiryo UI</family>
      </font>
     </property>
     <property name="mouseTracking">

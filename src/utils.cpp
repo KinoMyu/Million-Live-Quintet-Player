@@ -202,7 +202,7 @@ void parse_names(std::unordered_map<std::string, std::string>& readable_to_filen
         readable_to_filename[readable] = translated;
         for(int i = 0; i < size; ++i)
         {
-            sel[i]->addItem(QString::fromStdString(readable));
+            sel[i]->addItem(QString::fromLocal8Bit(readable.c_str()));
         }
     }
 }
