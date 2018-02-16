@@ -316,12 +316,12 @@ void MainWindow::setBGM(const QString& qStr)
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
         idolsel[i]->blockSignals(false);
-        int index = idolsel[i]->findText(QString::fromStdString(currIdols[i]));
+        int index = idolsel[i]->findText(QString::fromLocal8Bit(currIdols[i].c_str()));
         if(index == -1)
         {
             idolsel[i]->setCurrentIndex(0);
             std::string convIdolName = readableidol_to_filename[idolsel[i]->currentText().toLocal8Bit().constData()];
-            QString filename = QString::fromStdString("res/img/" + convIdolName + ".png");
+            QString filename = QString::fromLocal8Bit(("res/img/" + convIdolName + ".png").c_str());
             idolpixmap[i] = QPixmap(filename);
             idolimg[i]->setPixmap(idolpixmap[i]);
             BASS_Mixer_ChannelRemove(idols[i]->get_decode_channel());
@@ -413,7 +413,7 @@ void MainWindow::setIdol(int index)
 {
     std::string convIdolName = readableidol_to_filename[currIdols[index]];
     std::string convSongName = readablesong_to_filename[currSong];
-    QString filename = QString::fromStdString("res/img/" + convIdolName + ".png");
+    QString filename = QString::fromLocal8Bit(("res/img/" + convIdolName + ".png").c_str());
     idolpixmap[index] = QPixmap(filename);
     idolimg[index]->setPixmap(idolpixmap[index]);
     DWORD oldchan = idols[index]->get_decode_channel();
