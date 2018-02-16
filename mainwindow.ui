@@ -511,9 +511,9 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>40</x>
+      <x>23</x>
       <y>10</y>
-      <width>50</width>
+      <width>61</width>
       <height>21</height>
      </rect>
     </property>
@@ -530,7 +530,7 @@
      <string>Song:</string>
     </property>
     <property name="alignment">
-     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
     </property>
    </widget>
    <widget class="QLabel" name="label_2">

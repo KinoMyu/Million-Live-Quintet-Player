@@ -15,7 +15,9 @@ MainWindow::MainWindow(QWidget *parent) :
     dec(2)
 {
     QString locale = QLocale::system().name();
-    if(locale == "ja_JP")
+    locale.truncate(locale.lastIndexOf('_'));
+    QFileInfo check_file("QuintetPlayer_ja.qm");
+    if(locale == "ja" && check_file.exists())
     {
         langString = "jp";
     }
@@ -23,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         langString = "";
     }
+
     ui->setupUi(this);
     srand((unsigned int)time(NULL));
 
@@ -81,25 +84,13 @@ MainWindow::MainWindow(QWidget *parent) :
         idols[i] = new HCAStreamChannel(&dec);
         currIdols[i] = "";
         idolimg[i]->setScaledContents(true);
+        connect(idolsel[i], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdolName(QString)));
     }
 
     connect(ui->BGMSlider, SIGNAL(valueChanged(int)), this, SLOT(setBGMVol(int)));
     connect(ui->idolSlider, SIGNAL(valueChanged(int)), this, SLOT(setIdolVol(int)));
     connect(ui->positionSlider, SIGNAL(valueChanged(int)), this, SLOT(setPosition(int)));
     connect(ui->songsel, SIGNAL(currentIndexChanged(QString)), this, SLOT(setBGM(QString)));
-    connect(idolsel[0], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol0(QString)));
-    connect(idolsel[1], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol1(QString)));
-    connect(idolsel[2], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol2(QString)));
-    connect(idolsel[3], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol3(QString)));
-    connect(idolsel[4], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol4(QString)));
-    connect(idolsel[5], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol5(QString)));
-    connect(idolsel[6], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol6(QString)));
-    connect(idolsel[7], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol7(QString)));
-    connect(idolsel[8], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol8(QString)));
-    connect(idolsel[9], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol9(QString)));
-    connect(idolsel[10], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol10(QString)));
-    connect(idolsel[11], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol11(QString)));
-    connect(idolsel[12], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdol12(QString)));
     connect(ui->randomizeButton, SIGNAL(released()), this, SLOT(randomize()));
     connect(ui->playButton, SIGNAL(released()), this, SLOT(play()));
     connect(ui->pauseButton, SIGNAL(released()), this, SLOT(pause()));
@@ -145,7 +136,7 @@ void MainWindow::updateUIPosition()
     DWORD p = BASS_ChannelBytes2Seconds(bgm->get_decode_channel(),pos);
     DWORD l = BASS_ChannelBytes2Seconds(bgm->get_decode_channel(),len);
     QString result;
-    QTextStream(&result) << "Position: " << p/60 << QString(":%1").arg(p%60, 2, 10, QChar('0')) << "/" << l/60 << QString(":%1").arg(l%60, 2, 10, QChar('0'));
+    QTextStream(&result) << QString(langString == "jp" ? "位置: " : "Position: ") << p/60 << QString(":%1").arg(p%60, 2, 10, QChar('0')) << "/" << l/60 << QString(":%1").arg(l%60, 2, 10, QChar('0'));
     ui->statusBar->showMessage(result);
     if( pos >= len )
     {
@@ -217,81 +208,19 @@ void MainWindow::randomize()
     }
 }
 
-void MainWindow::setIdol0(const QString& qStr)
+void MainWindow::setIdolName(const QString& qStr)
 {
-    currIdols[0] = qStr.toLocal8Bit().constData();
-    setIdol(0);
-}
-
-void MainWindow::setIdol1(const QString& qStr)
-{
-    currIdols[1] = qStr.toLocal8Bit().constData();
-    setIdol(1);
-}
-
-void MainWindow::setIdol2(const QString& qStr)
-{
-    currIdols[2] = qStr.toLocal8Bit().constData();
-    setIdol(2);
-}
-
-void MainWindow::setIdol3(const QString& qStr)
-{
-    currIdols[3] = qStr.toLocal8Bit().constData();
-    setIdol(3);
-}
-
-void MainWindow::setIdol4(const QString& qStr)
-{
-    currIdols[4] = qStr.toLocal8Bit().constData();
-    setIdol(4);
-}
-
-void MainWindow::setIdol5(const QString& qStr)
-{
-    currIdols[5] = qStr.toLocal8Bit().constData();
-    setIdol(5);
-}
-
-void MainWindow::setIdol6(const QString& qStr)
-{
-    currIdols[6] = qStr.toLocal8Bit().constData();
-    setIdol(6);
-}
-
-void MainWindow::setIdol7(const QString& qStr)
-{
-    currIdols[7] = qStr.toLocal8Bit().constData();
-    setIdol(7);
-}
-
-void MainWindow::setIdol8(const QString& qStr)
-{
-    currIdols[8] = qStr.toLocal8Bit().constData();
-    setIdol(8);
-}
-
-void MainWindow::setIdol9(const QString& qStr)
-{
-    currIdols[9] = qStr.toLocal8Bit().constData();
-    setIdol(9);
-}
-void MainWindow::setIdol10(const QString& qStr)
-{
-    currIdols[10] = qStr.toLocal8Bit().constData();
-    setIdol(10);
-}
-
-void MainWindow::setIdol11(const QString& qStr)
-{
-    currIdols[11] = qStr.toLocal8Bit().constData();
-    setIdol(11);
-}
-
-void MainWindow::setIdol12(const QString& qStr)
-{
-    currIdols[12] = qStr.toLocal8Bit().constData();
-    setIdol(12);
+    int index = 0;
+    auto signalsender = sender();
+    for( ; index < NUM_IDOLS; ++index)
+    {
+        if(idolsel[index] == signalsender)
+        {
+            break;
+        }
+    }
+    currIdols[index] = qStr.toLocal8Bit().constData();
+    setIdol(index);
 }
 
 void MainWindow::setBGM(const QString& qStr)
