@@ -195,16 +195,19 @@ void MainWindow::setIdolVol(int value)
 
 void MainWindow::randomize()
 {
-    std::set<int> seenset;
-    int n;
-    for(int i = 0; i < unitsize; ++i)
+    if(idolsel[0]->count() > 1)
     {
-        do
+        std::set<int> seenset;
+        int n;
+        for(int i = 0; i < unitsize; ++i)
         {
-            n = rand() % (idolsel[i]->count() - 1) + 1;
-        } while(seenset.find(n) != seenset.end());
-        seenset.insert(n);
-        idolsel[i]->setCurrentIndex(n);
+            do
+            {
+                n = rand() % (idolsel[i]->count() - 1) + 1;
+            } while(seenset.find(n) != seenset.end());
+            seenset.insert(n);
+            idolsel[i]->setCurrentIndex(n);
+        }
     }
 }
 
