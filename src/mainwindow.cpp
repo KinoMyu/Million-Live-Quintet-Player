@@ -234,6 +234,11 @@ void MainWindow::setBGM(const QString& qStr)
     std::string convSongName = readablesong_to_filename[currSong];
     isusotsuki = convSongName == "macpri";
     unitsize = isusotsuki ? 1 : oldunitsize;
+    if(isusotsuki)
+    {
+        BASS_ChannelSetSync(bgm->get_decode_channel(), BASS_SYNC_SETPOS, 0, add_usotsuki, idols[0]);
+        BASS_ChannelSetSync(bgm->get_decode_channel(), BASS_SYNC_POS, 4575494 * 4, add_usotsuki, idols[0]);
+    }
     ui->usotsukilabel->setVisible(isusotsuki);
     ui->soloButton->setVisible(!isusotsuki);
     ui->unitButton->setVisible(!isusotsuki);
@@ -399,8 +404,6 @@ void MainWindow::setIdol(int index)
         QWORD len = BASS_ChannelGetLength(idols[0]->get_decode_channel(), BASS_POS_BYTE);
         QWORD mappos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE) / 2 - 4575494 * 2;
         BASS_ChannelSetPosition(idols[0]->get_decode_channel(), mappos >= len || mappos < 0 ? len - 1 : mappos, BASS_POS_BYTE);
-        BASS_ChannelSetSync(bgm->get_decode_channel(), BASS_SYNC_SETPOS, 0, add_usotsuki, idols[0]);
-        BASS_ChannelSetSync(bgm->get_decode_channel(), BASS_SYNC_POS, 4575494 * 4, add_usotsuki, idols[0]);
     }
 }
 
