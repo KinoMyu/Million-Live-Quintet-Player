@@ -5,6 +5,7 @@
 #include <algorithm>
 #include "../bass/bass.h"
 #include "utils.h"
+#include "HCAStreamChannel.h"
 
 short safeadd(const short& a, const short& b)
 {
@@ -20,7 +21,7 @@ double clamp(const double& d, const double& lower, const double& upper)
     return d;
 }
 
-void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double& idolVol, ControlInfo idolControlInfo[], const std::string& filename)
+void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double& idolVol, ControlInfo idolControlInfo[], const std::string& filename, bool usotsuki)
 {
     int pos = 0;
     short tempbuf[10000];
@@ -75,17 +76,21 @@ void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double&
                         idolvolpan[j] = idolControlInfo[j].second[index];
                         convert_to_left_right(idolvolpan[j], leftVol, rightVol);
                     }
-                    if (!(i % 2))
+                    if(!usotsuki || (index >= 4575494 && (index - 4575494) * 2 < BASS_ChannelGetLength(idols[j], BASS_POS_BYTE)))
                     {
-                        buf[i] = safeadd(idolVol * leftVol * tempbuf[i / 2], buf[i]);
-                    }
-                    else
-                    {
-                        buf[i] = safeadd(idolVol * rightVol * tempbuf[i / 2], buf[i]);
+                        if (!(i % 2))
+                        {
+                            buf[i] = safeadd(idolVol * leftVol * tempbuf[i / 2], buf[i]);
+                        }
+                        else
+                        {
+                            buf[i] = safeadd(idolVol * rightVol * tempbuf[i / 2], buf[i]);
+                        }
                     }
                 }
             }
         }
+
         fwrite(buf, 1, c, fp);
         pos = BASS_ChannelGetPosition(bgm, BASS_POS_BYTE);
     }
@@ -101,7 +106,7 @@ void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double&
     fclose(fp);
 }
 
-void parse_control_file(ControlInfo idolInfo[], const std::string & control_file, double& idolVol)
+void parse_control_file(ControlInfo idolInfo[], const std::string & control_file, double& idolVol, bool usotsuki)
 {
     double volTable[] = { 0.75, 0.62, 0.55, 0.47, 0.42, 0.39, 0.37, 0.35, 0.33, 0.31, 0.3, 0.29, 0.28 };
     VolumePan idolvolpan[NUM_IDOLS];
@@ -126,7 +131,9 @@ void parse_control_file(ControlInfo idolInfo[], const std::string & control_file
         for (int i = 0; i <= (int)line.length() - 1; ++i)
         {
             if(line.at(i) != 'x')
-                idolvolpan[line.at(i) - 48] = { volTable[numIdols], clamp(-0.15 * ((line.length() - 1) / 2.0 - i), -1, 1) };
+            {
+                idolvolpan[line.at(i) - 48] = { usotsuki ? 1 : volTable[numIdols], clamp(-0.15 * ((line.length() - 1) / 2.0 - i), -1, 1) };
+            }
         }
         for (int i = 0; i < NUM_IDOLS; ++i)
         {
@@ -168,6 +175,14 @@ void CALLBACK adjust_vol_pan(HSYNC handle, DWORD channel, DWORD data, void* user
     VolumePan vp = (*(ControlInfo*)user).second[pos];
     BASS_ChannelSetAttribute(channel, BASS_ATTRIB_VOL, vp.vol * *(*(ControlInfo*)user).first);
     BASS_ChannelSetAttribute(channel, BASS_ATTRIB_PAN, vp.pan);
+}
+
+void CALLBACK add_usotsuki(HSYNC handle, DWORD channel, DWORD data, void* user)
+{
+    DWORD idolchan = ((HCAStreamChannel*)user)->get_decode_channel();
+    QWORD len = BASS_ChannelGetLength(idolchan, BASS_POS_BYTE);
+    QWORD mappos = BASS_ChannelGetPosition(channel, BASS_POS_BYTE) / 2 - 4575494 * 2;
+    BASS_ChannelSetPosition(idolchan, mappos >= len || mappos < 0 ? len - 1 : mappos, BASS_POS_BYTE);
 }
 
 void set_auto_vol_pan_all(ControlInfo idolControlInfo[], DWORD idols[])

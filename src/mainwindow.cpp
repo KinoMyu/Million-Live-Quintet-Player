@@ -33,7 +33,9 @@ MainWindow::MainWindow(QWidget *parent) :
     idol_mix_stream = BASS_Mixer_StreamCreate(44100,2,BASS_STREAM_DECODE);
     BASS_Mixer_StreamAddChannel(mix_stream, idol_mix_stream, 0);
 
-    unitsize = 5;
+    isusotsuki = false;
+    ui->usotsukilabel->setVisible(false);
+    oldunitsize = unitsize = 5;
     idolsel[0] = ui->idolsel0;
     idolsel[1] = ui->idolsel1;
     idolsel[2] = ui->idolsel2;
@@ -230,6 +232,12 @@ void MainWindow::setBGM(const QString& qStr)
 {
     currSong = qStr.toLocal8Bit().constData();
     std::string convSongName = readablesong_to_filename[currSong];
+    isusotsuki = convSongName == "macpri";
+    unitsize = isusotsuki ? 1 : oldunitsize;
+    ui->usotsukilabel->setVisible(isusotsuki);
+    ui->soloButton->setVisible(!isusotsuki);
+    ui->unitButton->setVisible(!isusotsuki);
+    ui->unitButton13->setVisible(!isusotsuki);
     BASS_ChannelPause(mix_stream);
     //dec.wait_for_finish();
     BASS_Mixer_ChannelRemove(bgm->get_decode_channel());
@@ -238,7 +246,7 @@ void MainWindow::setBGM(const QString& qStr)
     BASS_Mixer_StreamAddChannel(mix_stream, bgm->get_decode_channel(), 0);
     BASS_Mixer_ChannelSetPosition(bgm->get_decode_channel(), 0, BASS_POS_BYTE | BASS_POS_MIXER_RESET);
     BASS_ChannelSetAttribute(bgm->get_decode_channel(),BASS_ATTRIB_VOL,bgmVol);
-    parse_control_file(idolInfo, "res/" + convSongName + "/control" + std::to_string(unitsize) + ".txt", idolVol);
+    parse_control_file(idolInfo, "res/" + convSongName + "/control" + std::to_string(unitsize) + ".txt", idolVol, isusotsuki);
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
         idolsel[i]->blockSignals(true);
@@ -337,7 +345,7 @@ void MainWindow::save()
     dec.wait_for_finish();
     // Stream needs to be paused else the output will be garbled
     BASS_ChannelPause(mix_stream);
-    export_to_wav(bgm->get_decode_channel(), idoldecodechannels, bgmVol, idolVol, idolInfo, filename);
+    export_to_wav(bgm->get_decode_channel(), idoldecodechannels, bgmVol, idolVol, idolInfo, filename, isusotsuki);
     reset();
 }
 
@@ -351,7 +359,7 @@ void MainWindow::setIdol(int index)
     DWORD oldchan = idols[index]->get_decode_channel();
     HCAStreamChannel&& hcastream = HCAStreamChannel(&dec);
     DWORD pos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
-    hcastream.load("res/" + convSongName + "/" + convIdolName + ".hca", pos/4);
+    hcastream.load("res/" + convSongName + "/" + convIdolName + ".hca", isusotsuki ? 0 : pos/4);
     if(index >= unitsize)
     {
         hcastream.destroy_channels();
@@ -362,7 +370,17 @@ void MainWindow::setIdol(int index)
         DWORD position = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
         BASS_ChannelSetPosition(hcastream.get_decode_channel(), position / 2, BASS_POS_BYTE);
         fuzzy_adjust_vol_pan(hcastream.get_decode_channel(), idolInfo[index]);
-        BASS_Mixer_StreamAddChannel(idol_mix_stream, hcastream.get_decode_channel(), 0);
+        if(!isusotsuki)
+        {
+            BASS_Mixer_StreamAddChannel(idol_mix_stream, hcastream.get_decode_channel(), 0);
+        }
+        else
+        {
+            if(index == 0)
+            {
+                BASS_Mixer_StreamAddChannel(idol_mix_stream, hcastream.get_decode_channel(), 0);
+            }
+        }
     }
     // Cleanup wave and channel data
     if(oldchan != 0)
@@ -370,13 +388,21 @@ void MainWindow::setIdol(int index)
         BASS_Mixer_ChannelRemove(oldchan);
     }
     *idols[index] = std::move(hcastream);
+    if(isusotsuki)
+    {
+        QWORD len = BASS_ChannelGetLength(idols[0]->get_decode_channel(), BASS_POS_BYTE);
+        QWORD mappos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE) / 2 - 4575494 * 2;
+        BASS_ChannelSetPosition(idols[0]->get_decode_channel(), mappos >= len || mappos < 0 ? len - 1 : mappos, BASS_POS_BYTE);
+        BASS_ChannelSetSync(bgm->get_decode_channel(), BASS_SYNC_SETPOS, 0, add_usotsuki, idols[0]);
+        BASS_ChannelSetSync(bgm->get_decode_channel(), BASS_SYNC_POS, 4575494 * 4, add_usotsuki, idols[0]);
+    }
 }
 
 void MainWindow::setUnit(bool checked)
 {
     if(unitsize!=5 && checked)
     {
-        unitsize = 5;
+        oldunitsize = unitsize = 5;
         reautomateVolumes();
     }
 }
@@ -385,7 +411,7 @@ void MainWindow::setSolo(bool checked)
 {
     if(unitsize!=1 && checked)
     {
-        unitsize = 1;
+        oldunitsize = unitsize = 1;
         reautomateVolumes();
     }
 }
@@ -394,7 +420,7 @@ void MainWindow::set13(bool checked)
 {
     if(unitsize!=13 && checked)
     {
-        unitsize = 13;
+        oldunitsize = unitsize = 13;
         reautomateVolumes();
     }
 }
@@ -402,7 +428,7 @@ void MainWindow::set13(bool checked)
 void MainWindow::reautomateVolumes()
 {
     std::string convSongName = readablesong_to_filename[currSong];
-    parse_control_file(idolInfo, "res/" + convSongName + "/control" + std::to_string(unitsize) + ".txt", idolVol);
+    parse_control_file(idolInfo, "res/" + convSongName + "/control" + std::to_string(unitsize) + ".txt", idolVol, isusotsuki);
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
         // Don't unload, rather just cleanup channels

@@ -1193,6 +1193,30 @@
      <bool>false</bool>
     </property>
    </widget>
+   <widget class="QLabel" name="usotsukilabel">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>10</y>
+      <width>151</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Meiryo UI</family>
+     </font>
+    </property>
+    <property name="text">
+     <string>Usotsuki</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>

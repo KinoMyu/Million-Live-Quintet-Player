@@ -63,5 +63,10 @@
         <source>13</source>
         <translation>13人</translation>
     </message>
+    <message>
+        <location filename="mainwindow.ui" line="1214"/>
+        <source>Usotsuki</source>
+        <translation>嘘つき</translation>
+    </message>
 </context>
 </TS>

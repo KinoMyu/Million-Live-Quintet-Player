@@ -62,6 +62,8 @@ private:
     QLabel* idolimg[NUM_IDOLS];
     QPixmap idolpixmap[NUM_IDOLS];
     HCADecodeService dec;
+    bool isusotsuki;
+    int oldunitsize;
 };
 
 #endif // MAINWINDOW_H
