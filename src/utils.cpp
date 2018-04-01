@@ -76,7 +76,7 @@ void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double&
                         idolvolpan[j] = idolControlInfo[j].second[index];
                         convert_to_left_right(idolvolpan[j], leftVol, rightVol);
                     }
-                    if(!usotsuki || (index >= 4575494 && (index - 4575494) * 2 < BASS_ChannelGetLength(idols[j], BASS_POS_BYTE)))
+                    if(!usotsuki || (index >= MACHIUKE && (index - MACHIUKE) * 2 < BASS_ChannelGetLength(idols[j], BASS_POS_BYTE)))
                     {
                         if (!(i % 2))
                         {
@@ -181,7 +181,7 @@ void CALLBACK add_usotsuki(HSYNC handle, DWORD channel, DWORD data, void* user)
 {
     DWORD idolchan = ((HCAStreamChannel*)user)->get_decode_channel();
     QWORD len = BASS_ChannelGetLength(idolchan, BASS_POS_BYTE);
-    QWORD mappos = BASS_ChannelGetPosition(channel, BASS_POS_BYTE) / 2 - 4575494 * 2;
+    QWORD mappos = BASS_ChannelGetPosition(channel, BASS_POS_BYTE) / 2 - MACHIUKE * 2;
     BASS_ChannelSetPosition(idolchan, mappos >= len || mappos < 0 ? len - 1 : mappos, BASS_POS_BYTE);
 }
 

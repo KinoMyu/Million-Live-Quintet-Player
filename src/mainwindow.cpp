@@ -276,7 +276,7 @@ void MainWindow::setBGM(const QString& qStr)
     if(isusotsuki)
     {
         BASS_ChannelSetSync(bgm->get_decode_channel(), BASS_SYNC_SETPOS, 0, add_usotsuki, idols[0]);
-        BASS_ChannelSetSync(bgm->get_decode_channel(), BASS_SYNC_POS, 4575494 * 4, add_usotsuki, idols[0]);
+        BASS_ChannelSetSync(bgm->get_decode_channel(), BASS_SYNC_POS, MACHIUKE * 4, add_usotsuki, idols[0]);
     }
 }
 
@@ -402,7 +402,7 @@ void MainWindow::setIdol(int index)
     if(isusotsuki)
     {
         QWORD len = BASS_ChannelGetLength(idols[0]->get_decode_channel(), BASS_POS_BYTE);
-        QWORD mappos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE) / 2 - 4575494 * 2;
+        QWORD mappos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE) / 2 - MACHIUKE * 2;
         BASS_ChannelSetPosition(idols[0]->get_decode_channel(), mappos >= len || mappos < 0 ? len - 1 : mappos, BASS_POS_BYTE);
     }
 }

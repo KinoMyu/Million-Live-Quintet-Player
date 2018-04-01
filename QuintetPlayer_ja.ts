@@ -66,7 +66,7 @@
     <message>
         <location filename="mainwindow.ui" line="1214"/>
         <source>Usotsuki</source>
-        <translation>嘘つき</translation>
+        <translation>うそつき</translation>
     </message>
 </context>
 </TS>

@@ -4,6 +4,7 @@
 #include <QComboBox>
 
 #define NUM_IDOLS 13
+#define MACHIUKE 4575494
 
 struct VolumePan
 {
