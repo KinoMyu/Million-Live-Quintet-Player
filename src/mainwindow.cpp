@@ -294,9 +294,12 @@ void MainWindow::play()
     {
         BASS_ChannelPause(mix_stream);
         BASS_ChannelSetPosition(bgm->get_decode_channel(), 0, BASS_POS_BYTE);
-        for(int i = 0; i < NUM_IDOLS; ++i)
+        if(!isusotsuki)
         {
-            BASS_ChannelSetPosition(idols[i]->get_decode_channel(), 0, BASS_POS_BYTE);
+            for(int i = 0; i < NUM_IDOLS; ++i)
+            {
+                BASS_ChannelSetPosition(idols[i]->get_decode_channel(), 0, BASS_POS_BYTE);
+            }
         }
     }
     // Clear buffer if player was paused
@@ -321,9 +324,12 @@ void MainWindow::reset()
         BASS_ChannelPause(mix_stream);
     }
     // Set positions and flush buffer
-    for(int i = 0; i < NUM_IDOLS; ++i)
+    if(!isusotsuki)
     {
-        BASS_Mixer_ChannelSetPosition(idols[i]->get_decode_channel(), 0, BASS_POS_BYTE);
+        for(int i = 0; i < NUM_IDOLS; ++i)
+        {
+            BASS_Mixer_ChannelSetPosition(idols[i]->get_decode_channel(), 0, BASS_POS_BYTE);
+        }
     }
     BASS_Mixer_ChannelSetPosition(bgm->get_decode_channel(), 0, BASS_POS_BYTE | BASS_POS_MIXER_RESET);
 }
