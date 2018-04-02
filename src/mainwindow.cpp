@@ -369,7 +369,7 @@ void MainWindow::setIdol(int index)
     idolimg[index]->setPixmap(idolpixmap[index]);
     DWORD oldchan = idols[index]->get_decode_channel();
     HCAStreamChannel&& hcastream = HCAStreamChannel(&dec);
-    DWORD pos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
+    QWORD pos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
     hcastream.load("res/" + convSongName + "/" + convIdolName + ".hca", isusotsuki ? 0 : pos/4);
     if(index >= unitsize)
     {
@@ -378,20 +378,18 @@ void MainWindow::setIdol(int index)
     else
     {
         set_auto_vol_pan(idolInfo[index], hcastream.get_decode_channel());
-        DWORD position = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
-        BASS_ChannelSetPosition(hcastream.get_decode_channel(), position / 2, BASS_POS_BYTE);
-        fuzzy_adjust_vol_pan(hcastream.get_decode_channel(), idolInfo[index]);
-        if(!isusotsuki)
+        if(isusotsuki)
         {
-            BASS_Mixer_StreamAddChannel(idol_mix_stream, hcastream.get_decode_channel(), 0);
+            QWORD len = BASS_ChannelGetLength(hcastream.get_decode_channel(), BASS_POS_BYTE);
+            QWORD mappos = pos / 2 - MACHIUKE * 2;
+            BASS_ChannelSetPosition(hcastream.get_decode_channel(), mappos >= len || mappos < 0 ? len - 1 : mappos, BASS_POS_BYTE);
         }
         else
         {
-            if(index == 0)
-            {
-                BASS_Mixer_StreamAddChannel(idol_mix_stream, hcastream.get_decode_channel(), 0);
-            }
+            BASS_ChannelSetPosition(hcastream.get_decode_channel(), pos / 2, BASS_POS_BYTE);
         }
+        fuzzy_adjust_vol_pan(hcastream.get_decode_channel(), idolInfo[index]);
+        BASS_Mixer_StreamAddChannel(idol_mix_stream, hcastream.get_decode_channel(), 0);
     }
     // Cleanup wave and channel data
     if(oldchan != 0)
@@ -399,12 +397,6 @@ void MainWindow::setIdol(int index)
         BASS_Mixer_ChannelRemove(oldchan);
     }
     *idols[index] = std::move(hcastream);
-    if(isusotsuki)
-    {
-        QWORD len = BASS_ChannelGetLength(idols[0]->get_decode_channel(), BASS_POS_BYTE);
-        QWORD mappos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE) / 2 - MACHIUKE * 2;
-        BASS_ChannelSetPosition(idols[0]->get_decode_channel(), mappos >= len || mappos < 0 ? len - 1 : mappos, BASS_POS_BYTE);
-    }
 }
 
 void MainWindow::setUnit(bool checked)
