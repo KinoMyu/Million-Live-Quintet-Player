@@ -23,14 +23,13 @@ double clamp(const double& d, const double& lower, const double& upper)
 
 void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double& idolVol, ControlInfo idolControlInfo[], const std::string& filename, bool usotsuki)
 {
-    int pos = 0;
     short tempbuf[10000];
     short buf[10000];
     FILE* fp = fopen(filename.c_str(), "wb");
     VolumePan idolvolpan[NUM_IDOLS];
     WAVEFORMATEX wf;
     BASS_CHANNELINFO info;
-    DWORD p, index;
+    DWORD p, index, pos = 0;
     double leftVol, rightVol;
     std::map<DWORD, VolumePan>::iterator iter;
 
@@ -108,7 +107,8 @@ void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double&
 
 void parse_control_file(ControlInfo idolInfo[], const std::string & control_file, double& idolVol, bool usotsuki)
 {
-    double volTable[] = { 0.75, 0.62, 0.55, 0.47, 0.42, 0.39, 0.37, 0.35, 0.33, 0.31, 0.3, 0.29, 0.28 };
+    static double volTable[] = { 0.75, 0.62, 0.55, 0.47, 0.42, 0.39, 0.37, 0.35, 0.33, 0.31, 0.3, 0.29, 0.28 };
+    // Game volume table = { 1, 0.89, 0.71, 0.67, 0.59 };
     VolumePan idolvolpan[NUM_IDOLS];
     std::ifstream infilestream(control_file);
     std::string line;
@@ -132,7 +132,7 @@ void parse_control_file(ControlInfo idolInfo[], const std::string & control_file
         {
             if(line.at(i) != 'x')
             {
-                idolvolpan[line.at(i) - 48] = { usotsuki ? 1 : volTable[numIdols], clamp(-0.15 * ((line.length() - 1) / 2.0 - i), -1, 1) };
+                idolvolpan[line.at(i) - 48] = { usotsuki ? 1 : volTable[numIdols], clamp(-0.2 * ((line.length() - 1) / 2.0 - i), -1, 1) };
             }
         }
         for (int i = 0; i < NUM_IDOLS; ++i)
