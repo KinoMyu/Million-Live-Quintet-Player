@@ -1,3 +1,3 @@
-[submodule "HCADecoder"]
+[submodule "FastHCADecoder"]
 	path = FastHCADecoder
-	url = https://github.com/KinoMyu/HCADecoder
+	url = https://github.com/KinoMyu/FastHCADecoder
