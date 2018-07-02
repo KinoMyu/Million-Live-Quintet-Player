@@ -8,7 +8,6 @@
 #include "../bass/bassmix.h"
 #include "HCAStreamChannel.h"
 #include "utils.h"
-#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -622,16 +621,22 @@ void MainWindow::addSyncEvents()
 void MainWindow::fuzzyAdjust()
 {
     QWORD pos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE) / 4;
-    auto it = event_list.upper_bound(pos);
-    if(it != event_list.begin())
+    if(!event_list.empty())
     {
-        --it;
+        auto it = event_list.upper_bound(pos);
+        if(it != event_list.begin())
+        {
+            --it;
+        }
+        applyCommand(event_list[it->first]);
     }
-    applyCommand(event_list[it->first]);
-    it = oneshot_event_list.upper_bound(pos);
-    if(it != oneshot_event_list.begin())
+    if(!oneshot_event_list.empty())
     {
-        --it;
+        auto it = oneshot_event_list.upper_bound(pos);
+        if(it != oneshot_event_list.begin())
+        {
+            --it;
+        }
+        applyCommand(oneshot_event_list[it->first]);
     }
-    applyCommand(oneshot_event_list[it->first]);
 }
