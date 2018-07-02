@@ -29,6 +29,15 @@ public:
     void updateIdolActivity();
     void reautomateVolumes();
     void setIdol(int index);
+    int numIdolsOfType(char type);
+    std::string findIdolsOfType(char type);
+    std::string filterCommand(const std::string& command);
+    static void CALLBACK dispatchEvent(HSYNC handle, DWORD channel, DWORD data, void *user);
+    static void CALLBACK dispatchOneshotEvent(HSYNC handle, DWORD channel, DWORD data, void *user);
+    void addSyncEvents();
+    void fuzzyAdjust();
+    void applyCommand(const std::string& command);
+    void applyOneshotCommand(const std::string &command);
 
 public slots:
     void setBGMVol(int value);
@@ -53,10 +62,13 @@ private:
     int updateTimerId;
     HCAStreamChannel* bgm;
     HCAStreamChannel* idols[NUM_IDOLS];
-    ControlInfo idolInfo[NUM_IDOLS];
-    HSTREAM mix_stream, idol_mix_stream;
+    HCAStreamChannel* idolsoneshot[NUM_IDOLS];
+    HSTREAM play_stream, mix_stream, idol_mix_stream, idol_oneshot_stream;
     std::string currSong, currIdols[NUM_IDOLS], langString;
     std::unordered_map<std::string, std::string> readableidol_to_filename, readablesong_to_filename;
+    std::unordered_map<std::string, char> idol_to_type;
+    std::map<QWORD, std::string> event_list, oneshot_event_list;
+    std::deque<HSYNC> sync_list;
     QComboBox* idolsel[NUM_IDOLS];
     QCheckBox* idolactivity[NUM_IDOLS];
     QLabel* idolimg[NUM_IDOLS];

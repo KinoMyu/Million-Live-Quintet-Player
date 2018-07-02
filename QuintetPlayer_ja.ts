@@ -41,7 +41,7 @@
     <message>
         <location filename="mainwindow.ui" line="530"/>
         <source>Song:</source>
-        <translation>曲:</translation>
+        <translation>楽曲:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="554"/>

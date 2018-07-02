@@ -4,41 +4,18 @@
 #include <fstream>
 #include <algorithm>
 #include "../bass/bass.h"
+#include "../bass/bassmix.h"
 #include "utils.h"
 #include "HCAStreamChannel.h"
 
-short safeadd(const short& a, const short& b)
-{
-    if ((b > 0) && (a > SHRT_MAX - b)) return SHRT_MAX;
-    if ((b < 0) && (a < SHRT_MIN - b)) return SHRT_MIN;
-    return a + b;
-}
-
-double clamp(const double& d, const double& lower, const double& upper)
-{
-    if(d < lower) return lower;
-    if(d > upper) return upper;
-    return d;
-}
-
-void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double& idolVol, ControlInfo idolControlInfo[], const std::string& filename, bool usotsuki)
+void export_to_wav(DWORD bgm, HSTREAM mix_stream, const std::string& filename)
 {
     short tempbuf[10000];
     short buf[10000];
     FILE* fp = fopen(filename.c_str(), "wb");
-    VolumePan idolvolpan[NUM_IDOLS];
     WAVEFORMATEX wf;
     BASS_CHANNELINFO info;
-    DWORD p, index, pos = 0;
-    double leftVol, rightVol;
-    std::map<DWORD, VolumePan>::iterator iter;
-
-    // Reset positions to start
-    BASS_ChannelSetPosition(bgm, 0, BASS_POS_BYTE);
-    for (int j = 0; j < NUM_IDOLS; ++j)
-    {
-        BASS_ChannelSetPosition(idols[j], 0, BASS_POS_BYTE);
-    }
+    DWORD p;
 
     // Start WAV Header
     BASS_ChannelGetInfo(bgm, &info);
@@ -55,43 +32,13 @@ void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double&
     // Write sample data
     while (BASS_ChannelIsActive(bgm))
     {
-        int c = BASS_ChannelGetData(bgm, tempbuf, 20000);
+        int c = BASS_ChannelGetData(mix_stream, tempbuf, 20000);
         for (int i = 0; i < 10000; ++i)
         {
-            buf[i] = bgmVol * tempbuf[i];
-        }
-        for (int j = 0; j < NUM_IDOLS; ++j)
-        {
-            if (idols[j] != 0)
-            {
-                convert_to_left_right(idolvolpan[j], leftVol, rightVol);
-                BASS_ChannelGetData(idols[j], tempbuf, 10000);
-                for (int i = 0; i < 10000; ++i)
-                {
-                    index = pos / 4 + i / 2;
-                    iter = idolControlInfo[j].second.find(index);
-                    if (iter != idolControlInfo[j].second.end())
-                    {
-                        idolvolpan[j] = idolControlInfo[j].second[index];
-                        convert_to_left_right(idolvolpan[j], leftVol, rightVol);
-                    }
-                    if(!usotsuki || (index >= MACHIUKE && (index - MACHIUKE) * 2 < BASS_ChannelGetLength(idols[j], BASS_POS_BYTE)))
-                    {
-                        if (!(i % 2))
-                        {
-                            buf[i] = safeadd(idolVol * leftVol * tempbuf[i / 2], buf[i]);
-                        }
-                        else
-                        {
-                            buf[i] = safeadd(idolVol * rightVol * tempbuf[i / 2], buf[i]);
-                        }
-                    }
-                }
-            }
+            buf[i] = tempbuf[i];
         }
 
         fwrite(buf, 1, c, fp);
-        pos = BASS_ChannelGetPosition(bgm, BASS_POS_BYTE);
     }
     // Complete WAV header
     fflush(fp);
@@ -105,76 +52,19 @@ void export_to_wav(DWORD bgm, DWORD idols[], const double& bgmVol, const double&
     fclose(fp);
 }
 
-void parse_control_file(ControlInfo idolInfo[], const std::string & control_file, double& idolVol, bool usotsuki)
+void parse_control_file(std::map<QWORD, std::string>& event_list, const std::string & control_file)
 {
-    static double volTable[] = { 0.75, 0.62, 0.55, 0.47, 0.42, 0.39, 0.37, 0.35, 0.33, 0.31, 0.3, 0.29, 0.28 };
-    // Game volume table = { 1, 0.89, 0.71, 0.67, 0.59 };
-    VolumePan idolvolpan[NUM_IDOLS];
-    std::ifstream infilestream(control_file);
+    event_list.clear();
     std::string line;
-    int position;
-    for(int i = 0; i < NUM_IDOLS; ++i)
-    {
-        idolInfo[i].second.clear();
-    }
+    DWORD position = 0;
+    std::ifstream infilestream(control_file);
     while (std::getline(infilestream, line))
     {
         std::istringstream iss(line);
         iss >> position;
         std::getline(infilestream, line);
-        for (int i = 0; i < NUM_IDOLS; ++i)
-        {
-            idolvolpan[i] = { 0, 0 };
-        }
-        size_t n = std::count(line.begin(), line.end(), 'x');
-        int numIdols = (int)line.length() - 1 - n;
-        for (int i = 0; i <= (int)line.length() - 1; ++i)
-        {
-            if(line.at(i) != 'x')
-            {
-                idolvolpan[line.at(i) - 48] = { usotsuki ? 1 : volTable[numIdols], clamp(-0.2 * ((line.length() - 1) / 2.0 - i), -1, 1) };
-            }
-        }
-        for (int i = 0; i < NUM_IDOLS; ++i)
-        {
-            idolInfo[i].second[position] = idolvolpan[i];
-        }
+        event_list[position] = line;
     }
-    for (int i = 0; i < NUM_IDOLS; ++i)
-    {
-        idolInfo[i].first = &idolVol;
-    }
-}
-
-void convert_to_left_right(VolumePan vp, double& leftVol, double& rightVol)
-{
-    leftVol = (1 - vp.pan/2) * vp.vol;
-    rightVol = (1 + vp.pan/2) * vp.vol;
-}
-
-void fuzzy_adjust_vol_pan(DWORD channel, ControlInfo ci)
-{
-    if (channel == 0) return;
-    VolumePan vp;
-    DWORD pos = BASS_ChannelGetPosition(channel , BASS_POS_BYTE) / 2;
-    DWORD last_pos = 0;
-    for (std::pair<DWORD, VolumePan> pos_vp : ci.second)
-    {
-        if (pos >= last_pos && pos <= pos_vp.first)
-            break;
-        last_pos = pos_vp.first;
-        vp = pos_vp.second;
-    }
-    BASS_ChannelSetAttribute(channel, BASS_ATTRIB_VOL, vp.vol * *ci.first);
-    BASS_ChannelSetAttribute(channel, BASS_ATTRIB_PAN, vp.pan);
-}
-
-void CALLBACK adjust_vol_pan(HSYNC handle, DWORD channel, DWORD data, void* user)
-{
-    DWORD pos = BASS_ChannelGetPosition(channel, BASS_POS_BYTE) / 2;
-    VolumePan vp = (*(ControlInfo*)user).second[pos];
-    BASS_ChannelSetAttribute(channel, BASS_ATTRIB_VOL, vp.vol * *(*(ControlInfo*)user).first);
-    BASS_ChannelSetAttribute(channel, BASS_ATTRIB_PAN, vp.pan);
 }
 
 void CALLBACK add_usotsuki(HSYNC handle, DWORD channel, DWORD data, void* user)
@@ -183,25 +73,6 @@ void CALLBACK add_usotsuki(HSYNC handle, DWORD channel, DWORD data, void* user)
     QWORD len = BASS_ChannelGetLength(idolchan, BASS_POS_BYTE);
     QWORD mappos = BASS_ChannelGetPosition(channel, BASS_POS_BYTE) / 2 - MACHIUKE * 2;
     BASS_ChannelSetPosition(idolchan, mappos >= len || mappos < 0 ? len - 1 : mappos, BASS_POS_BYTE);
-}
-
-void set_auto_vol_pan_all(ControlInfo idolControlInfo[], DWORD idols[])
-{
-    for (int i = 0; i < NUM_IDOLS; ++i)
-    {
-        set_auto_vol_pan(idolControlInfo[i], idols[i]);
-    }
-}
-
-void set_auto_vol_pan(const ControlInfo& idolControlInfo, DWORD idolchannel)
-{
-    if (idolchannel != 0)
-    {
-        for (std::pair<DWORD, VolumePan> pos_vp : idolControlInfo.second)
-        {
-            BASS_ChannelSetSync(idolchannel, BASS_SYNC_POS, pos_vp.first * 2, adjust_vol_pan, (void*)&idolControlInfo);
-        }
-    }
 }
 
 void parse_names(std::unordered_map<std::string, std::string>& readable_to_filename, const std::string& infile, QComboBox* sel[], int size)
@@ -219,5 +90,19 @@ void parse_names(std::unordered_map<std::string, std::string>& readable_to_filen
         {
             sel[i]->addItem(QString::fromLocal8Bit(readable.c_str()));
         }
+    }
+}
+
+void parse_types(std::unordered_map<std::string, char>& filename_to_type, const std::string& infile)
+{
+    std::ifstream infilestream(infile);
+    std::string line, idol, type;
+    std::stringstream ss;
+    while (std::getline(infilestream, line))
+    {
+        ss = std::stringstream(line);
+        std::getline(ss, type, ':');
+        std::getline(ss, idol);
+        filename_to_type[idol] = type[0] & ALL;
     }
 }
