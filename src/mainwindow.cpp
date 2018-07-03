@@ -329,6 +329,10 @@ void MainWindow::reset()
         BASS_ChannelPause(play_stream);
     }
     // Set positions and flush buffer
+    for(int i = 0; i < unitsize; ++i)
+    {
+        BASS_ChannelSetPosition(idols[i]->get_decode_channel(), 0, BASS_POS_BYTE);
+    }
     BASS_Mixer_ChannelSetPosition(bgm->get_decode_channel(), 0, BASS_POS_BYTE | BASS_POS_MIXER_RESET);
 }
 
@@ -340,11 +344,11 @@ void MainWindow::save()
     {
         return;
     }
-    reset();
     // Wait for all HCA audio to be decoded
     dec.wait_for_finish();
     // Stream needs to be paused else the output will be garbled
     BASS_ChannelPause(play_stream);
+    reset();
     export_to_wav(bgm->get_decode_channel(), mix_stream, filename);
     reset();
 }
