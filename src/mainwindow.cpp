@@ -333,6 +333,7 @@ void MainWindow::reset()
         BASS_ChannelSetPosition(idols[i]->get_decode_channel(), 0, BASS_POS_BYTE);
     }
     BASS_Mixer_ChannelSetPosition(bgm->get_decode_channel(), 0, BASS_POS_BYTE | BASS_POS_MIXER_RESET);
+    fuzzyAdjust();
 }
 
 void MainWindow::save()
