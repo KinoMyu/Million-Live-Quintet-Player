@@ -301,8 +301,8 @@ void MainWindow::setPosition(int value)
 void MainWindow::play()
 {
     // Check if we're at the end
-    QWORD pos = BASS_ChannelGetLength(bgm->get_decode_channel(),BASS_POS_BYTE);
-    if(pos >= BASS_ChannelGetPosition(bgm->get_decode_channel(),BASS_POS_BYTE))
+    QWORD len = BASS_ChannelGetLength(bgm->get_decode_channel(),BASS_POS_BYTE);
+    if(len <= BASS_ChannelGetPosition(bgm->get_decode_channel(),BASS_POS_BYTE))
     {
         reset();
     }
