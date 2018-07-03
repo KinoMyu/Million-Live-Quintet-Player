@@ -67,14 +67,6 @@ void parse_control_file(std::map<QWORD, std::string>& event_list, const std::str
     }
 }
 
-void CALLBACK add_usotsuki(HSYNC handle, DWORD channel, DWORD data, void* user)
-{
-    DWORD idolchan = ((HCAStreamChannel*)user)->get_decode_channel();
-    QWORD len = BASS_ChannelGetLength(idolchan, BASS_POS_BYTE);
-    QWORD mappos = BASS_ChannelGetPosition(channel, BASS_POS_BYTE) / 2 - MACHIUKE * 2;
-    BASS_ChannelSetPosition(idolchan, mappos >= len || mappos < 0 ? len - 1 : mappos, BASS_POS_BYTE);
-}
-
 void parse_names(std::unordered_map<std::string, std::string>& readable_to_filename, const std::string& infile, QComboBox* sel[], int size)
 {
     std::ifstream infilestream(infile);
