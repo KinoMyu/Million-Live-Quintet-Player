@@ -517,6 +517,7 @@ void MainWindow::applyOneshotCommand(const std::string &command)
     for(int i = 0; i < unitsize; ++i)
     {
         BASS_Mixer_ChannelRemove(idolsoneshot[i]->get_decode_channel());
+        BASS_ChannelSetPosition(idolsoneshot[i]->get_decode_channel(), 0, BASS_POS_BYTE);
     }
 
     std::string filtered = filterCommand(com);
@@ -526,11 +527,14 @@ void MainWindow::applyOneshotCommand(const std::string &command)
     {
         if(filtered[i] != 'x')
         {
-            QWORD len = BASS_ChannelGetLength(idolsoneshot[i]->get_decode_channel(), BASS_POS_BYTE);
-            BASS_ChannelSetAttribute(idolsoneshot[filtered[i] - 48]->get_decode_channel(), BASS_ATTRIB_VOL, idolVol * volTable[numSinging - 1 - n] / 0.75);
-            BASS_ChannelSetAttribute(idolsoneshot[filtered[i] - 48]->get_decode_channel(), BASS_ATTRIB_PAN, panTable[numSinging - 1][i]);
-            BASS_ChannelSetPosition(idolsoneshot[filtered[i] - 48]->get_decode_channel(), mappos >= len || mappos < 0 ? len - 1 : mappos, BASS_POS_BYTE);
-            BASS_Mixer_StreamAddChannel(idol_mix_stream, idolsoneshot[filtered[i] - 48]->get_decode_channel(), 0);
+            QWORD len = BASS_ChannelGetLength(idolsoneshot[filtered[i] - 48]->get_decode_channel(), BASS_POS_BYTE);
+            if(mappos >= 0 && mappos < len)
+            {
+                BASS_ChannelSetAttribute(idolsoneshot[filtered[i] - 48]->get_decode_channel(), BASS_ATTRIB_VOL, idolVol * volTable[numSinging - 1 - n] / (isusotsuki ? 0.75 : 0.95));
+                BASS_ChannelSetAttribute(idolsoneshot[filtered[i] - 48]->get_decode_channel(), BASS_ATTRIB_PAN, panTable[numSinging - 1][i]);
+                BASS_ChannelSetPosition(idolsoneshot[filtered[i] - 48]->get_decode_channel(), mappos, BASS_POS_BYTE);
+                BASS_Mixer_StreamAddChannel(idol_mix_stream, idolsoneshot[filtered[i] - 48]->get_decode_channel(), 0);
+            }
         }
     }
 }
