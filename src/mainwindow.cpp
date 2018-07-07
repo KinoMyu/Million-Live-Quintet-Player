@@ -454,7 +454,6 @@ void MainWindow::set13(bool checked)
 {
     if(unit_size != 13 && checked)
     {
-        std::cout << "aaa" << std::endl;
         old_unit_size = unit_size = 13;
         reautomateVolumes();
     }
