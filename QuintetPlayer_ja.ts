@@ -9,64 +9,74 @@
         <translation>ミリシタクインテットプレイヤー</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="379"/>
+        <location filename="mainwindow.ui" line="391"/>
         <source>Play</source>
         <translation>再生</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="400"/>
+        <location filename="mainwindow.ui" line="412"/>
         <source>Pause</source>
         <translation>一時停止</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="421"/>
+        <location filename="mainwindow.ui" line="433"/>
         <source>Export</source>
         <translation>書き出し</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="442"/>
+        <location filename="mainwindow.ui" line="454"/>
         <source>Reset</source>
         <translation>巻き戻し</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="484"/>
+        <location filename="mainwindow.ui" line="496"/>
         <source>Solo</source>
         <translation>ソロ</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="505"/>
+        <location filename="mainwindow.ui" line="517"/>
         <source>Unit</source>
         <translation>5人</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="530"/>
+        <location filename="mainwindow.ui" line="542"/>
         <source>Song:</source>
         <translation>楽曲:</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="554"/>
+        <location filename="mainwindow.ui" line="566"/>
         <source>BGM Volume</source>
         <translation>BGM音量</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="578"/>
+        <location filename="mainwindow.ui" line="590"/>
         <source>Idol Volume</source>
         <translation>アイドル音量</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="689"/>
+        <location filename="mainwindow.ui" line="716"/>
         <source>Random</source>
         <translation>ランダム編成</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="1190"/>
+        <location filename="mainwindow.ui" line="1241"/>
         <source>13</source>
         <translation>13人</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="1214"/>
+        <location filename="mainwindow.ui" line="1265"/>
         <source>Usotsuki</source>
         <translation>うそつき</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="1286"/>
+        <source>Reverb</source>
+        <translation>リバーブ</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="1307"/>
+        <source>Appeal</source>
+        <translation>アピール</translation>
     </message>
 </context>
 </TS>

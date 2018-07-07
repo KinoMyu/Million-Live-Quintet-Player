@@ -3,6 +3,7 @@
 #include "mainwindow.h"
 #include "../bass/bass.h"
 #include "../bass/bassmix.h"
+#include "../bass/bass_fx.h"
 
 int main(int argc, char *argv[])
 {
@@ -15,6 +16,7 @@ int main(int argc, char *argv[])
     BASS_SetConfig(BASS_CONFIG_BUFFER,100);
     BASS_SetConfig(BASS_CONFIG_MIXER_BUFFER,100);
     BASS_SetConfig(BASS_CONFIG_UPDATEPERIOD,5);
+    BASS_FX_GetVersion();
 
     QString locale = QLocale::system().name();
     locale.truncate(locale.lastIndexOf('_'));

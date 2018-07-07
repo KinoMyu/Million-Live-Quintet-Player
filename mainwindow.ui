@@ -31,6 +31,9 @@
   <property name="windowTitle">
    <string>Million Live Quintet Player</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <property name="locale">
    <locale language="English" country="UnitedStates"/>
   </property>
@@ -180,7 +183,7 @@
      <rect>
       <x>14</x>
       <y>480</y>
-      <width>381</width>
+      <width>385</width>
       <height>22</height>
      </rect>
     </property>
@@ -205,9 +208,9 @@
    <widget class="QSlider" name="idolSlider">
     <property name="geometry">
      <rect>
-      <x>214</x>
+      <x>217</x>
       <y>445</y>
-      <width>181</width>
+      <width>182</width>
       <height>22</height>
      </rect>
     </property>
@@ -240,7 +243,7 @@
      <rect>
       <x>14</x>
       <y>445</y>
-      <width>181</width>
+      <width>182</width>
       <height>22</height>
      </rect>
     </property>
@@ -316,6 +319,8 @@
     <property name="font">
      <font>
       <family>Meiryo UI</family>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="mouseTracking">
@@ -370,10 +375,17 @@
     <property name="font">
      <font>
       <family>Meiryo UI</family>
+      <pointsize>8</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+      <stylestrategy>PreferDefault</stylestrategy>
      </font>
     </property>
     <property name="mouseTracking">
      <bool>false</bool>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Play</string>
@@ -598,6 +610,9 @@
     <property name="text">
      <string/>
     </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLabel" name="idolimage1">
     <property name="geometry">
@@ -615,6 +630,9 @@
     </property>
     <property name="text">
      <string/>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QLabel" name="idolimage0">
@@ -634,6 +652,9 @@
     <property name="text">
      <string/>
     </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLabel" name="idolimage2">
     <property name="geometry">
@@ -652,6 +673,9 @@
     <property name="text">
      <string/>
     </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLabel" name="idolimage4">
     <property name="geometry">
@@ -669,6 +693,9 @@
     </property>
     <property name="text">
      <string/>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QPushButton" name="randomizeButton">
@@ -748,6 +775,9 @@
     <property name="text">
      <string/>
     </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLabel" name="idolimage11">
     <property name="geometry">
@@ -766,6 +796,9 @@
     <property name="text">
      <string/>
     </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLabel" name="idolimage5">
     <property name="geometry">
@@ -783,6 +816,9 @@
     </property>
     <property name="text">
      <string/>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QCheckBox" name="idolactive11">
@@ -928,6 +964,9 @@
     <property name="text">
      <string/>
     </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QCheckBox" name="idolactive12">
     <property name="enabled">
@@ -988,6 +1027,9 @@
     <property name="text">
      <string/>
     </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLabel" name="idolimage6">
     <property name="geometry">
@@ -1006,6 +1048,9 @@
     <property name="text">
      <string/>
     </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLabel" name="idolimage12">
     <property name="geometry">
@@ -1023,6 +1068,9 @@
     </property>
     <property name="text">
      <string/>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QCheckBox" name="idolactive6">
@@ -1168,6 +1216,9 @@
     <property name="text">
      <string/>
     </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QRadioButton" name="unitButton13">
     <property name="geometry">
@@ -1215,6 +1266,48 @@
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="reverbToggle">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>43</y>
+      <width>81</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Meiryo UI</family>
+     </font>
+    </property>
+    <property name="text">
+     <string>Reverb</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="appealToggle">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>69</y>
+      <width>70</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Meiryo UI</family>
+     </font>
+    </property>
+    <property name="text">
+     <string>Appeal</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>

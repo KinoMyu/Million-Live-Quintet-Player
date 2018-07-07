@@ -8,38 +8,33 @@
 #include "utils.h"
 #include "HCAStreamChannel.h"
 
-void export_to_wav(DWORD bgm, HSTREAM mix_stream, const std::string& filename)
+void export_to_wav(HSTREAM mix_stream, const std::string& filename)
 {
-    short tempbuf[10000];
     short buf[10000];
     FILE* fp = fopen(filename.c_str(), "wb");
     WAVEFORMATEX wf;
     BASS_CHANNELINFO info;
     DWORD p;
+    int c;
 
     // Start WAV Header
-    BASS_ChannelGetInfo(bgm, &info);
+    BASS_ChannelGetInfo(mix_stream, &info);
     wf.wFormatTag = 1;
     wf.nChannels = info.chans;
-    wf.wBitsPerSample = (info.flags&BASS_SAMPLE_8BITS ? 8 : 16);
-    wf.nBlockAlign = wf.nChannels*wf.wBitsPerSample / 8;
+    wf.wBitsPerSample = (info.flags & BASS_SAMPLE_8BITS ? 8 : 16);
+    wf.nBlockAlign = wf.nChannels * wf.wBitsPerSample / 8;
     wf.nSamplesPerSec = info.freq;
-    wf.nAvgBytesPerSec = wf.nSamplesPerSec*wf.nBlockAlign;
+    wf.nAvgBytesPerSec = wf.nSamplesPerSec * wf.nBlockAlign;
     fwrite("RIFF\0\0\0\0WAVEfmt \20\0\0\0", 20, 1, fp);
     fwrite(&wf, 16, 1, fp);
     fwrite("data\0\0\0\0", 8, 1, fp);
 
     // Write sample data
-    while (BASS_ChannelIsActive(bgm))
+    do
     {
-        int c = BASS_ChannelGetData(mix_stream, tempbuf, 20000);
-        for (int i = 0; i < 10000; ++i)
-        {
-            buf[i] = tempbuf[i];
-        }
-
+        c = BASS_ChannelGetData(mix_stream, buf, 20000);
         fwrite(buf, 1, c, fp);
-    }
+    } while (c > 0);
     // Complete WAV header
     fflush(fp);
     p = ftell(fp);
@@ -67,7 +62,7 @@ void parse_control_file(std::map<QWORD, std::string>& event_list, const std::str
     }
 }
 
-void parse_names(std::unordered_map<std::string, std::string>& readable_to_filename, const std::string& infile, QComboBox* sel[], int size)
+void parse_names(std::unordered_map<std::string, std::string>& filename_to_readable, const std::string& infile, QComboBox* sel[], int size)
 {
     std::ifstream infilestream(infile);
     std::string line, readable, translated;
@@ -75,12 +70,12 @@ void parse_names(std::unordered_map<std::string, std::string>& readable_to_filen
     while (std::getline(infilestream, line))
     {
         ss = std::stringstream(line);
-        std::getline(ss, readable, ':');
-        std::getline(ss, translated);
-        readable_to_filename[readable] = translated;
+        std::getline(ss, translated, ':');
+        std::getline(ss, readable);
+        filename_to_readable[translated] = readable;
         for(int i = 0; i < size; ++i)
         {
-            sel[i]->addItem(QString::fromLocal8Bit(readable.c_str()));
+            sel[i]->addItem(QString::fromLocal8Bit(readable.c_str()), QString::fromLocal8Bit(translated.c_str()));
         }
     }
 }
@@ -93,8 +88,8 @@ void parse_types(std::unordered_map<std::string, char>& filename_to_type, const 
     while (std::getline(infilestream, line))
     {
         ss = std::stringstream(line);
-        std::getline(ss, type, ':');
-        std::getline(ss, idol);
+        std::getline(ss, idol, ':');
+        std::getline(ss, type);
         filename_to_type[idol] = type[0] & ALL;
     }
 }

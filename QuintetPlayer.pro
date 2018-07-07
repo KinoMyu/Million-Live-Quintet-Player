@@ -39,12 +39,13 @@ HEADERS += \
     FastHCADecoder/HCADecodeService.h \
     FastHCADecoder/Semaphore.h \
     bass/bass.h \
+    bass/bass_fx.h \
     bass/bassmix.h
 
 FORMS += \
         mainwindow.ui
 
-unix|win32: LIBS += -L$$PWD/bass/ -lbass -lbassmix
+unix|win32: LIBS += -L$$PWD/bass/ -lbass -lbassmix -lbass_fx
 
 INCLUDEPATH += $$PWD/.
 DEPENDPATH += $$PWD/.

@@ -1,12 +1,12 @@
 #include "HCAStreamChannel.h"
 #include "../HCADecoder/clHCA.h"
 
-HCAStreamChannel::HCAStreamChannel(HCADecodeService* dec, float volume, unsigned int ciphKey1, unsigned int ciphKey2)
+HCAStreamChannel::HCAStreamChannel(HCADecodeService* dec, float volume, unsigned int cipher_key_1, unsigned int cipher_key_2)
     : dec {dec},
       flags {0},
       volume {volume},
-      ciphKey1 {ciphKey1},
-      ciphKey2 {ciphKey2},
+      cipher_key_1 {cipher_key_1},
+      cipher_key_2 {cipher_key_2},
       ptr {nullptr},
       size {0},
       playback_channel {0},
@@ -24,19 +24,19 @@ HCAStreamChannel::HCAStreamChannel(const HCAStreamChannel& other)
 	flags = other.flags;
     size = other.size;
     volume = other.volume;
-    ciphKey1 = other.ciphKey1;
-    ciphKey2 = other.ciphKey2;
+    cipher_key_1 = other.cipher_key_1;
+    cipher_key_2 = other.cipher_key_2;
     ptr = new char[size];
     for (size_t i = 0; i < size; ++i) ((char*)ptr)[i] = ((char*)other.ptr)[i];
     __load();
 }
 
-HCAStreamChannel::HCAStreamChannel(HCADecodeService* dec, const std::string& filename, float volume, unsigned int ciphKey1, unsigned int ciphKey2)
+HCAStreamChannel::HCAStreamChannel(HCADecodeService* dec, const std::string& filename, float volume, unsigned int cipher_key_1, unsigned int cipher_key_2)
   : dec {dec},
     flags {0},
     volume {volume},
-    ciphKey1 {ciphKey1},
-    ciphKey2 {ciphKey2}
+    cipher_key_1 {cipher_key_1},
+    cipher_key_2 {cipher_key_2}
 {
     load(filename, 0);
 }
@@ -56,8 +56,8 @@ HCAStreamChannel& HCAStreamChannel::operator=(HCAStreamChannel&& other)
         ptr = other.ptr;
         size = other.size;
         volume = other.volume;
-        ciphKey1 = other.ciphKey1;
-        ciphKey2 = other.ciphKey2;
+        cipher_key_1 = other.cipher_key_1;
+        cipher_key_2 = other.cipher_key_2;
         playback_channel = other.playback_channel;
         decode_channel = other.decode_channel;
         flags = other.flags;
@@ -86,7 +86,7 @@ void HCAStreamChannel::unload()
 
 bool HCAStreamChannel::load(const std::string& filename)
 {
-    auto pair = dec->decode(filename.c_str(), 0, ciphKey1, ciphKey2, volume);
+    auto pair = dec->decode(filename.c_str(), 0, cipher_key_1, cipher_key_2, volume);
     ptr = pair.first;
     size = pair.second;
     return __load();
@@ -175,8 +175,8 @@ void HCAStreamChannel::make_channels()
 
 void HCAStreamChannel::set_volume(float volume) { this->volume = volume; }
 
-void HCAStreamChannel::set_ciphkey(unsigned int ciphKey1, unsigned int ciphKey2)
+void HCAStreamChannel::set_ciphkey(unsigned int cipher_key_1, unsigned int cipher_key_2)
 {
-    this->ciphKey1 = ciphKey1;
-    this->ciphKey2 = ciphKey2;
+    this->cipher_key_1 = cipher_key_1;
+    this->cipher_key_2 = cipher_key_2;
 }
