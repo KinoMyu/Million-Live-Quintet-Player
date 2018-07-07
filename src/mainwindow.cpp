@@ -308,11 +308,6 @@ void MainWindow::setBGM(const QString&)
 
 void MainWindow::setPosition(int value)
 {
-    bool was_paused = BASS_ChannelIsActive(play_stream) == BASS_ACTIVE_PAUSED;
-    if(!was_paused)
-    {
-        BASS_ChannelPause(play_stream);
-    }
     QWORD len = BASS_ChannelGetLength(bgm->get_decode_channel(), BASS_POS_BYTE);
     QWORD pos = (long double)len / 2 / ui->positionSlider->maximum() * value;
     for(int i = 0; i < NUM_IDOLS; ++i)
@@ -320,10 +315,6 @@ void MainWindow::setPosition(int value)
         BASS_ChannelSetPosition(idols[i]->get_decode_channel(), pos, BASS_POS_BYTE);
     }
     BASS_ChannelSetPosition(bgm->get_decode_channel(), pos * 2, BASS_POS_BYTE);
-    if(!was_paused)
-    {
-        BASS_ChannelPlay(play_stream, FALSE);
-    }
     fuzzyAdjust();
 }
 
@@ -353,20 +344,11 @@ void MainWindow::pause()
 void MainWindow::reset()
 {
     // Set positions and flush buffer
-    bool was_paused = BASS_ChannelIsActive(play_stream) == BASS_ACTIVE_PAUSED;
-    if(!was_paused)
-    {
-        BASS_ChannelPause(play_stream);
-    }
     for(int i = 0; i < unit_size; ++i)
     {
         BASS_ChannelSetPosition(idols[i]->get_decode_channel(), 0, BASS_POS_BYTE);
     }
     BASS_Mixer_ChannelSetPosition(bgm->get_decode_channel(), 0, BASS_POS_BYTE | BASS_POS_MIXER_RESET);
-    if(!was_paused)
-    {
-        BASS_ChannelPlay(play_stream, FALSE);
-    }
     fuzzyAdjust();
 }
 
@@ -409,17 +391,8 @@ void MainWindow::setIdol(int index)
     }
     else
     {
-        bool was_paused = BASS_ChannelIsActive(play_stream) == BASS_ACTIVE_PAUSED;
-        if(!was_paused)
-        {
-            BASS_ChannelPause(play_stream);
-        }
         pos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
         BASS_ChannelSetPosition(hcastream.get_decode_channel(), pos / 2, BASS_POS_BYTE);
-        if(!was_paused)
-        {
-            BASS_ChannelPlay(play_stream, FALSE);
-        }
     }
     // Cleanup wave and channel data
     BASS_Mixer_ChannelRemove(old_channel);
