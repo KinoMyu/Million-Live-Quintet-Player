@@ -709,6 +709,8 @@ void MainWindow::saveConfig(const std::string &filename)
     outfile << "bgm=" << current_song << std::endl;
     outfile << "reverb=" << (ui->reverbToggle->isChecked() ? 1 : 0) << std::endl;
     outfile << "appeal=" << (ui->appealToggle->isChecked() ? 1 : 0) << std::endl;
+    outfile << "bgmvol=" << bgm_vol << std::endl;
+    outfile << "idolvol=" << idol_vol << std::endl;
     outfile << "unitsize=" << unit_size;
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
@@ -748,6 +750,14 @@ void MainWindow::loadConfigFile(const std::string &filename)
             current_idols[i] = config["idol" + std::to_string(i)];
         }
         ui->songsel->setCurrentIndex(ui->songsel->findData(current_song.c_str()));
+        if(config["bgmvol"] != "")
+        {
+            ui->BGMSlider->setValue(std::stod(config["bgmvol"]) * 100);
+        }
+        if(config["idolvol"] != "")
+        {
+            ui->idolSlider->setValue(std::stod(config["idolvol"]) * 100);
+        }
         if(config["unitsize"] != "")
         {
             old_unit_size = unit_size = std::stoi(config["unitsize"]);
