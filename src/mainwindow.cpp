@@ -26,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
     mix_stream {BASS_Mixer_StreamCreate(44100,2,BASS_STREAM_DECODE)},
     idol_mix_stream {BASS_Mixer_StreamCreate(44100,2,BASS_STREAM_DECODE)},
     idol_oneshot_stream {BASS_Mixer_StreamCreate(44100,2,BASS_STREAM_DECODE)},
-    freeverb_params {1, 0.6f, 0.68f, 0.3f, 1, 0, BASS_BFX_CHANALL}
+    freeverb_params {1, 0.4f, 0.76f, 0.3f, 1, 0, BASS_BFX_CHANALL}
 {
     QString locale = QLocale::system().name();
     locale.truncate(locale.lastIndexOf('_'));
@@ -375,9 +375,6 @@ void MainWindow::setIdol(int index)
     idol_pixmap[index] = QPixmap(filename);
     idol_image[index]->setPixmap(idol_pixmap[index]);
 
-    DWORD old_channel = idols[index]->get_decode_channel();
-    DWORD old_channel2 = idols_oneshot[index]->get_decode_channel();
-
     HCAStreamChannel&& hcastream = HCAStreamChannel(&dec, 0.9f);
     HCAStreamChannel&& hcastream2 = HCAStreamChannel(&dec, 0.9f);
     QWORD pos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
@@ -395,8 +392,8 @@ void MainWindow::setIdol(int index)
         BASS_ChannelSetPosition(hcastream.get_decode_channel(), pos / 2, BASS_POS_BYTE);
     }
     // Cleanup wave and channel data
-    BASS_Mixer_ChannelRemove(old_channel);
-    BASS_Mixer_ChannelRemove(old_channel2);
+    BASS_Mixer_ChannelRemove(idols[index]->get_decode_channel());
+    BASS_Mixer_ChannelRemove(idols_oneshot[index]->get_decode_channel());
 
     *idols[index] = std::move(hcastream);
     *idols_oneshot[index] = std::move(hcastream2);
@@ -437,6 +434,7 @@ void MainWindow::reautomateVolumes()
     parse_control_file(event_list, "res/" + current_song + "/control" + std::to_string(unit_size) + ".txt");
     parse_control_file(oneshot_event_list, "res/" + current_song + "/oneshot" + std::to_string(unit_size) + ".txt");
     addSyncEvents();
+
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
         // Don't unload, rather just cleanup channels
@@ -444,6 +442,7 @@ void MainWindow::reautomateVolumes()
         BASS_Mixer_ChannelRemove(idols_oneshot[i]->get_decode_channel());
         idols[i]->destroy_channels();
         idols_oneshot[i]->destroy_channels();
+
         if(i < unit_size)
         {
             idols[i]->make_channels();
@@ -469,7 +468,7 @@ std::string MainWindow::findIdolsOfType(char type)
             command += char(j + 48);
         }
     }
-    if(command.length() == 0)
+    if(command.empty())
     {
         for(int i = 0; i < unit_size; ++i)
         {
@@ -722,15 +721,15 @@ void MainWindow::loadConfigFile(const std::string &filename)
             current_idols[i] = config["idol" + std::to_string(i)];
         }
         ui->songsel->setCurrentIndex(ui->songsel->findData(current_song.c_str()));
-        if(config["bgmvol"] != "")
+        if(config["bgmvol"].length())
         {
             ui->BGMSlider->setValue(std::stod(config["bgmvol"]) * 100);
         }
-        if(config["idolvol"] != "")
+        if(config["idolvol"].length())
         {
             ui->idolSlider->setValue(std::stod(config["idolvol"]) * 100);
         }
-        if(config["unitsize"] != "")
+        if(config["unitsize"].length())
         {
             old_unit_size = unit_size = std::stoi(config["unitsize"]);
             switch(unit_size)
