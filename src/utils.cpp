@@ -8,13 +8,13 @@
 #include "utils.h"
 #include "HCAStreamChannel.h"
 
-void export_to_wav(HSTREAM mix_stream, const std::string& filename)
+void export_to_wav(HSTREAM mix_stream, const std::string& filename, const std::map<QWORD, std::string>& event_list, const std::map<QWORD, std::string> &oneshot_event_list)
 {
-    short buf[10000];
+    short buf[100000];
     FILE* fp = fopen(filename.c_str(), "wb");
     WAVEFORMATEX wf;
     BASS_CHANNELINFO info;
-    DWORD p;
+    QWORD p = 0;
     int c;
 
     // Start WAV Header
@@ -32,7 +32,19 @@ void export_to_wav(HSTREAM mix_stream, const std::string& filename)
     // Write sample data
     do
     {
-        c = BASS_ChannelGetData(mix_stream, buf, 20000);
+        int numsamples_to_read = 50000;
+        auto it = event_list.upper_bound(p);
+        if(it != event_list.end() && it->first - p < numsamples_to_read)
+        {
+            numsamples_to_read = it->first - p;
+        }
+        it = oneshot_event_list.upper_bound(p);
+        if(it != event_list.end() && it->first - p < numsamples_to_read)
+        {
+            numsamples_to_read = it->first - p;
+        }
+        c = BASS_ChannelGetData(mix_stream, buf, numsamples_to_read * 4);
+        p += numsamples_to_read;
         fwrite(buf, 1, c, fp);
     } while (c > 0);
     // Complete WAV header

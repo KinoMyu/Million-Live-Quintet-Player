@@ -365,7 +365,7 @@ void MainWindow::save()
     // Stream needs to be paused else the output will be garbled
     pause();
     reset();
-    export_to_wav(mix_stream, filename);
+    export_to_wav(mix_stream, filename, event_list, oneshot_event_list);
     reset();
 }
 
@@ -641,7 +641,7 @@ void MainWindow::fuzzyAdjust()
         {
             --it;
         }
-        applyCommand(event_list[it->first]);
+        applyCommand(it->second);
     }
     if(!oneshot_event_list.empty())
     {
@@ -650,7 +650,7 @@ void MainWindow::fuzzyAdjust()
         {
             --it;
         }
-        applyCommand(oneshot_event_list[it->first]);
+        applyCommand(it->second);
     }
 }
 
