@@ -375,31 +375,32 @@ void MainWindow::setIdol(int index)
     idol_pixmap[index] = QPixmap(filename);
     idol_image[index]->setPixmap(idol_pixmap[index]);
 
-    HCAStreamChannel&& hcastream = HCAStreamChannel(&dec, 0.9f);
-    HCAStreamChannel&& hcastream2 = HCAStreamChannel(&dec, 0.9f);
     QWORD pos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
-    hcastream.load("res/" + current_song + "/" + current_idols[index] + ".hca", pos/4);
-    hcastream2.load("res/" + current_song + "/oneshot/" + current_idols[index] + ".hca", 0);
+    idols[index]->load("res/" + current_song + "/" + current_idols[index] + ".hca", pos/4);
+    idols_oneshot[index]->load("res/" + current_song + "/oneshot/" + current_idols[index] + ".hca", 0);
 
     if(index >= unit_size)
     {
-        hcastream.destroy_channels();
-        hcastream2.destroy_channels();
+        idols[index]->destroy_channels();
+        idols_oneshot[index]->destroy_channels();
     }
     else
     {
+        bool was_playing = true;
+        if(BASS_ChannelIsActive(play_stream) == BASS_ACTIVE_PAUSED)
+        {
+            was_playing = false;
+        }
+        BASS_ChannelPause(play_stream);
         pos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
-        BASS_ChannelSetPosition(hcastream.get_decode_channel(), pos / 2, BASS_POS_BYTE);
+        BASS_ChannelSetPosition(idols[index]->get_decode_channel(), pos / 2, BASS_POS_BYTE);
+        BASS_Mixer_StreamAddChannel(idol_mix_stream, idols[index]->get_decode_channel(), 0);
+        fuzzyAdjust();
+        if(was_playing)
+        {
+            BASS_ChannelPlay(play_stream, FALSE);
+        }
     }
-    // Cleanup wave and channel data
-    BASS_Mixer_ChannelRemove(idols[index]->get_decode_channel());
-    BASS_Mixer_ChannelRemove(idols_oneshot[index]->get_decode_channel());
-
-    *idols[index] = std::move(hcastream);
-    *idols_oneshot[index] = std::move(hcastream2);
-
-    fuzzyAdjust();
-    BASS_Mixer_StreamAddChannel(idol_mix_stream, idols[index]->get_decode_channel(), 0);
 }
 
 void MainWindow::setUnit(bool checked)
@@ -482,42 +483,35 @@ std::string MainWindow::filterCommand(const std::string &command)
 {
     std::string filtered;
     filtered.reserve(13);
+    std::set<int> singing_set;
     for(unsigned int i = 0; i < command.length(); ++i)
     {
         int idolnum = command[i] - 48;
-        if((idolnum == 'x' - 48) || (idolnum >= 0 && idolnum < NUM_IDOLS && idol_to_type[current_idols[idolnum]] & ALL))
+        if(idolnum == 'x' - 48)
         {
             filtered += command[i];
+        }
+        else
+        {
+            while(idolnum >= 0 && idolnum < unit_size)
+            {
+                if(singing_set.find(idolnum) == singing_set.end() && idol_to_type[current_idols[idolnum]] & ALL)
+                {
+                    singing_set.insert(idolnum);
+                    filtered += (char)(idolnum + 48);
+                    break;
+                }
+                idolnum = fallback.at(idolnum);
+            }
         }
     }
     return filtered;
 }
 
-void MainWindow::applyOneshotCommand(const std::string &command)
+void MainWindow::applyOneshotCommand(QWORD pos, const std::string &command)
 {
-    static double volTable[] = { 0.75, 0.61, 0.51, 0.469, 0.413, 0.373, 0.345, 0.326, 0.308, 0.29, 0.271, 0.259, 0.246 };
-    // Game volume table = { 1, 0.89, 0.71, 0.67, 0.59 };
-    static double panTable[NUM_IDOLS][NUM_IDOLS] = {{    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                                                    {-0.25,  0.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                                                    {-0.25,     0,  0.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                                                    { -0.4,  -0.2,   0.2,   0.4, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                                                    { -0.5, -0.25,     0,  0.25,   0.5, 0, 0, 0, 0, 0, 0, 0, 0},
-                                                    { -0.5,  -0.3,  -0.1,   0.1,   0.3,   0.5, 0, 0, 0, 0, 0, 0, 0},
-                                                    { -0.6,  -0.4,  -0.2,     0,   0.2,   0.4,   0.6, 0, 0, 0, 0, 0, 0},
-                                                    { -0.6,  -0.5,  -0.3, -0.15,  0.15,   0.3,   0.5,   0.6, 0, 0, 0, 0, 0},
-                                                    { -0.7, -0.55,  -0.4,  -0.2,     0,   0.2,   0.4,  0.55,   0.7, 0, 0, 0, 0},
-                                                    { -0.8,  -0.6,  -0.5,  -0.3, -0.15,  0.15,   0.3,   0.5,   0.6,   0.8, 0, 0, 0},
-                                                    { -0.9,  -0.7, -0.55,  -0.4,  -0.2,     0,   0.2,   0.4,  0.55,   0.7,   0.9, 0, 0},
-                                                    {   -1,  -0.8,  -0.7,  -0.6,  -0.4,  -0.2,   0.2,   0.4,   0.6,   0.7,   0.8,     1, 0},
-                                                    {   -1,  -0.9,  -0.8,  -0.6,  -0.4,  -0.2,     0,   0.2,   0.4,   0.6,   0.8,   0.9,    1}};
     QWORD bgmpos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE) / 4;
-    std::istringstream iss(command);
-    std::string com;
-    QWORD ospos = 0, mappos = 0;
-    iss >> ospos;
-    iss.get();
-    mappos = (bgmpos - ospos) * 2;
-    std::getline(iss, com);
+    QWORD mappos = (bgmpos - pos) * 2;
 
     for(int i = 0; i < unit_size; ++i)
     {
@@ -525,13 +519,19 @@ void MainWindow::applyOneshotCommand(const std::string &command)
         BASS_ChannelSetPosition(idols_oneshot[i]->get_decode_channel(), 0, BASS_POS_BYTE);
     }
 
-    std::string filtered = filterCommand(com);
+    std::string filtered = filterCommand(command);
     int numSinging = filtered.length();
     size_t n = std::count(filtered.begin(), filtered.end(), 'x');
     for(int i = 0; i < numSinging; ++i)
     {
         if(filtered[i] != 'x')
         {
+            bool was_playing = true;
+            if(BASS_ChannelIsActive(play_stream) == BASS_ACTIVE_PAUSED)
+            {
+                was_playing = false;
+            }
+            BASS_ChannelPause(play_stream);
             QWORD len = BASS_ChannelGetLength(idols_oneshot[filtered[i] - 48]->get_decode_channel(), BASS_POS_BYTE);
             if(mappos >= 0 && mappos < len)
             {
@@ -539,6 +539,10 @@ void MainWindow::applyOneshotCommand(const std::string &command)
                 BASS_ChannelSetAttribute(idols_oneshot[filtered[i] - 48]->get_decode_channel(), BASS_ATTRIB_PAN, panTable[numSinging - 1][i]);
                 BASS_ChannelSetPosition(idols_oneshot[filtered[i] - 48]->get_decode_channel(), mappos, BASS_POS_BYTE);
                 BASS_Mixer_StreamAddChannel(idol_oneshot_stream, idols_oneshot[filtered[i] - 48]->get_decode_channel(), 0);
+            }
+            if(was_playing)
+            {
+                BASS_ChannelPlay(play_stream, FALSE);
             }
         }
     }
@@ -554,21 +558,7 @@ void MainWindow::applyCommand(const std::string &command)
         }
         return;
     }
-    static double volTable[] = { 0.75, 0.61, 0.51, 0.469, 0.413, 0.373, 0.345, 0.326, 0.308, 0.29, 0.271, 0.259, 0.246 };
-    // Game volume table = { 1, 0.89, 0.71, 0.67, 0.59 };
-    static double panTable[NUM_IDOLS][NUM_IDOLS] = {{    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                                                    {-0.25,  0.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                                                    {-0.25,     0,  0.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                                                    { -0.4,  -0.2,   0.2,   0.4, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                                                    { -0.5, -0.25,     0,  0.25,   0.5, 0, 0, 0, 0, 0, 0, 0, 0},
-                                                    { -0.5,  -0.3,  -0.1,   0.1,   0.3,   0.5, 0, 0, 0, 0, 0, 0, 0},
-                                                    { -0.6,  -0.4,  -0.2,     0,   0.2,   0.4,   0.6, 0, 0, 0, 0, 0, 0},
-                                                    { -0.6,  -0.5,  -0.3, -0.15,  0.15,   0.3,   0.5,   0.6, 0, 0, 0, 0, 0},
-                                                    { -0.7, -0.55,  -0.4,  -0.2,     0,   0.2,   0.4,  0.55,   0.7, 0, 0, 0, 0},
-                                                    { -0.8,  -0.6,  -0.5,  -0.3, -0.15,  0.15,   0.3,   0.5,   0.6,   0.8, 0, 0, 0},
-                                                    { -0.9,  -0.7, -0.55,  -0.4,  -0.2,     0,   0.2,   0.4,  0.55,   0.7,   0.9, 0, 0},
-                                                    {   -1,  -0.8,  -0.7,  -0.6,  -0.4,  -0.2,   0.2,   0.4,   0.6,   0.7,   0.8,     1, 0},
-                                                    {   -1,  -0.9,  -0.8,  -0.6,  -0.4,  -0.2,     0,   0.2,   0.4,   0.6,   0.8,   0.9,    1}};
+
     switch(command[0])
     {
     case 'P':
@@ -579,9 +569,6 @@ void MainWindow::applyCommand(const std::string &command)
         break;
     case 'A':
         applyCommand(findIdolsOfType(ANGEL));
-        break;
-    case 'O':
-        applyOneshotCommand(command.substr(1, command.length() - 1));
         break;
     default:
         for(int i = 0; i < unit_size; ++i)
@@ -611,7 +598,7 @@ void CALLBACK MainWindow::dispatchEvent(HSYNC, DWORD channel, DWORD, void *user)
 void CALLBACK MainWindow::dispatchOneshotEvent(HSYNC, DWORD channel, DWORD, void *user)
 {
     QWORD pos = BASS_ChannelGetPosition(channel, BASS_POS_BYTE) / 4;
-    ((MainWindow*)user)->applyCommand(((MainWindow*)user)->oneshot_event_list[pos]);
+    ((MainWindow*)user)->applyOneshotCommand(pos, ((MainWindow*)user)->oneshot_event_list[pos]);
 }
 
 void MainWindow::addSyncEvents()
@@ -650,7 +637,7 @@ void MainWindow::fuzzyAdjust()
         {
             --it;
         }
-        applyCommand(it->second);
+        applyOneshotCommand(it->first, it->second);
     }
 }
 

@@ -86,6 +86,7 @@ void HCAStreamChannel::unload()
 
 bool HCAStreamChannel::load(const std::string& filename)
 {
+    unload();
     auto pair = dec->decode(filename.c_str(), 0, cipher_key_1, cipher_key_2, volume);
     ptr = pair.first;
     size = pair.second;
@@ -94,6 +95,7 @@ bool HCAStreamChannel::load(const std::string& filename)
 
 bool HCAStreamChannel::load(const std::string& filename, DWORD samplenum)
 {
+    unload();
     auto pair = dec->decode(filename.c_str(), samplenum);
     ptr = pair.first;
     size = pair.second;

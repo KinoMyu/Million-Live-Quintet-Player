@@ -38,7 +38,7 @@ public:
     void addSyncEvents();
     void fuzzyAdjust();
     void applyCommand(const std::string &command);
-    void applyOneshotCommand(const std::string &command);
+    void applyOneshotCommand(QWORD pos, const std::string &command);
     void saveConfig(const std::string &filename);
     bool loadConfig(std::unordered_map<std::string, std::string> &config, const std::string &filename);
     void loadConfigFile(const std::string &filename);
