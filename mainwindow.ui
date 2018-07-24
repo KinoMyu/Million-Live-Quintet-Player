@@ -451,7 +451,7 @@
      <bool>false</bool>
     </property>
     <property name="text">
-     <string>Reset</string>
+     <string>Rewind</string>
     </property>
    </widget>
    <widget class="QComboBox" name="songsel">

@@ -25,7 +25,8 @@
     </message>
     <message>
         <location filename="mainwindow.ui" line="454"/>
-        <source>Reset</source>
+        <source>Rewind</source>
+        <oldsource>Reset</oldsource>
         <translation>巻き戻し</translation>
     </message>
     <message>

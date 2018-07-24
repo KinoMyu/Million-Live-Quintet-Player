@@ -526,12 +526,6 @@ void MainWindow::applyOneshotCommand(QWORD pos, const std::string &command)
     {
         if(filtered[i] != 'x')
         {
-            bool was_playing = true;
-            if(BASS_ChannelIsActive(play_stream) == BASS_ACTIVE_PAUSED)
-            {
-                was_playing = false;
-            }
-            BASS_ChannelPause(play_stream);
             QWORD len = BASS_ChannelGetLength(idols_oneshot[filtered[i] - 48]->get_decode_channel(), BASS_POS_BYTE);
             if(mappos >= 0 && mappos < len)
             {
@@ -539,10 +533,6 @@ void MainWindow::applyOneshotCommand(QWORD pos, const std::string &command)
                 BASS_ChannelSetAttribute(idols_oneshot[filtered[i] - 48]->get_decode_channel(), BASS_ATTRIB_PAN, panTable[numSinging - 1][i]);
                 BASS_ChannelSetPosition(idols_oneshot[filtered[i] - 48]->get_decode_channel(), mappos, BASS_POS_BYTE);
                 BASS_Mixer_StreamAddChannel(idol_oneshot_stream, idols_oneshot[filtered[i] - 48]->get_decode_channel(), 0);
-            }
-            if(was_playing)
-            {
-                BASS_ChannelPlay(play_stream, FALSE);
             }
         }
     }
