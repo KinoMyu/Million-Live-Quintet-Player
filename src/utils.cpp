@@ -32,6 +32,7 @@ void export_to_wav(HSTREAM mix_stream, const std::string& filename, const std::m
     // Write sample data
     do
     {
+        // Get number of samples until next sync event
         int numsamples_to_read = 50000;
         auto it = event_list.upper_bound(p);
         if(it != event_list.end() && it->first - p < numsamples_to_read)

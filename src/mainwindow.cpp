@@ -697,7 +697,10 @@ void MainWindow::loadConfigFile(const std::string &filename)
         {
             current_idols[i] = config["idol" + std::to_string(i)];
         }
+        ui->songsel->blockSignals(true);
         ui->songsel->setCurrentIndex(ui->songsel->findData(current_song.c_str()));
+        ui->songsel->blockSignals(false);
+        setBGM(QString::fromStdString(current_song));
         if(config["bgmvol"].length())
         {
             ui->BGMSlider->setValue(std::stod(config["bgmvol"]) * 100);

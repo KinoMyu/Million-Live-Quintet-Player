@@ -25,6 +25,8 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+private:
     void timerEvent(QTimerEvent *event);
     void updateControls();
     void updateUIPosition();
@@ -43,7 +45,7 @@ public:
     bool loadConfig(std::unordered_map<std::string, std::string> &config, const std::string &filename);
     void loadConfigFile(const std::string &filename);
 
-public slots:
+private slots:
     void setBGMVolume(int value);
     void setIdolVolume(int value);
     void setBGM(const QString& qStr);
