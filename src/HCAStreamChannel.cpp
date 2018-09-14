@@ -3,14 +3,14 @@
 
 HCAStreamChannel::HCAStreamChannel(HCADecodeService* dec, float volume, unsigned int cipher_key_1, unsigned int cipher_key_2)
     : dec {dec},
-      flags {0},
-      volume {volume},
-      cipher_key_1 {cipher_key_1},
-      cipher_key_2 {cipher_key_2},
       ptr {nullptr},
       size {0},
       playback_channel {0},
-      decode_channel {0}
+      decode_channel {0},
+      flags {0},
+      volume {volume},
+      cipher_key_1 {cipher_key_1},
+      cipher_key_2 {cipher_key_2}
 {}
 
 HCAStreamChannel::HCAStreamChannel(const HCAStreamChannel& other)
@@ -27,7 +27,7 @@ HCAStreamChannel::HCAStreamChannel(const HCAStreamChannel& other)
     cipher_key_1 = other.cipher_key_1;
     cipher_key_2 = other.cipher_key_2;
     ptr = new char[size];
-    for (size_t i = 0; i < size; ++i) ((char*)ptr)[i] = ((char*)other.ptr)[i];
+    memcpy(ptr, other.ptr, size);
     __load();
 }
 
@@ -80,7 +80,7 @@ void HCAStreamChannel::unload()
     dec->cancel_decode(ptr);
     if (playback_channel != 0) { BASS_StreamFree(playback_channel); playback_channel = 0; }
     if (decode_channel != 0) { BASS_StreamFree(decode_channel); decode_channel = 0; }
-    if (ptr != nullptr) { delete[] ptr; ptr = nullptr; }
+    if (ptr != nullptr) { operator delete(ptr); ptr = nullptr; }
     size = 0;
 }
 
@@ -114,7 +114,7 @@ bool HCAStreamChannel::__load()
     if (playback_channel == 0)
     {
         dec->cancel_decode(ptr);
-        delete[] ptr;
+        operator delete(ptr);
         ptr = nullptr;
         decode_channel = 0;
         size = 0;
@@ -124,7 +124,7 @@ bool HCAStreamChannel::__load()
     if (decode_channel == 0)
     {
         dec->cancel_decode(ptr);
-        delete[] ptr;
+        operator delete(ptr);
         ptr = nullptr;
         BASS_StreamFree(playback_channel);
         playback_channel = 0;

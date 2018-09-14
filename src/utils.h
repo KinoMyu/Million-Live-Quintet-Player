@@ -2,6 +2,7 @@
 #include <map>
 #include <unordered_map>
 #include <QComboBox>
+#include "../bass/bass.h"
 
 #define NUM_IDOLS 13
 #define ALL 0x15

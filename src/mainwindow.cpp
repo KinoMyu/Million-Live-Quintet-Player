@@ -16,17 +16,17 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow {parent},
     ui {new Ui::MainWindow},
-    dec {2},
-    is_usotsuki {false},
-    old_unit_size {5},
     unit_size {5},
+    old_unit_size {5},
     bgm_vol {0.6},
     idol_vol {0.6},
+    is_usotsuki {false},
     play_stream {BASS_Mixer_StreamCreate(44100,2,0)},
     mix_stream {BASS_Mixer_StreamCreate(44100,2,BASS_STREAM_DECODE)},
     idol_mix_stream {BASS_Mixer_StreamCreate(44100,2,BASS_STREAM_DECODE)},
     idol_oneshot_stream {BASS_Mixer_StreamCreate(44100,2,BASS_STREAM_DECODE)},
-    freeverb_params {1, 0.4f, 0.76f, 0.3f, 1, 0, BASS_BFX_CHANALL}
+    freeverb_params {1, 0.4f, 0.76f, 0.3f, 1, 0, BASS_BFX_CHANALL},
+    dec {2}
 {
     QString locale = QLocale::system().name();
     locale.truncate(locale.lastIndexOf('_'));
@@ -156,10 +156,14 @@ void MainWindow::updateUIPosition()
         ui->positionSlider->setValue((double)pos/len*ui->positionSlider->maximum());
         ui->positionSlider->blockSignals(false);
     }
-    QWORD p = BASS_ChannelBytes2Seconds(bgm->get_decode_channel(),pos);
-    QWORD l = BASS_ChannelBytes2Seconds(bgm->get_decode_channel(),len);
+    double p = BASS_ChannelBytes2Seconds(bgm->get_decode_channel(),pos);
+    double l = BASS_ChannelBytes2Seconds(bgm->get_decode_channel(),len);
+    int pm = p / 60;
+    int lm = l / 60;
+    double ps = p - pm * 60;
+    double ls = l - lm * 60;
     QString result;
-    QTextStream(&result) << QString(language_string == "jp" ? "位置: " : "Position: ") << p/60 << QString(":%1").arg(p%60, 2, 10, QChar('0')) << "/" << l/60 << QString(":%1").arg(l%60, 2, 10, QChar('0'));
+    QTextStream(&result) << QString(language_string == "jp" ? "位置: " : "Position: ") << pm << QString(":%1").arg(ps, 5, 'f', 2, QChar('0')) << "/" << lm << QString(":%1").arg(ls, 5, 'f', 2, QChar('0'));
     ui->statusBar->showMessage(result);
     if( pos >= len )
     {
@@ -216,20 +220,23 @@ void MainWindow::setIdolVolume(int value)
 
 void MainWindow::randomizeUnit()
 {
+    unsigned int choices = idol_selection_box[0]->count() - 1;
+    unsigned int* list = new unsigned int[choices];
+    unsigned int* it = list;
+    for(unsigned int i = 1; i <= choices; ++i)
+    {
+        *(it++) = i;
+    }
     if(idol_selection_box[0]->count() > 1)
     {
-        std::set<int> seen_set;
-        int n;
         for(int i = 0; i < unit_size; ++i)
         {
-            do
-            {
-                n = rand() % (idol_selection_box[i]->count() - 1) + 1;
-            } while(seen_set.find(n) != seen_set.end());
-            seen_set.insert(n);
-            idol_selection_box[i]->setCurrentIndex(n);
+            unsigned int n = (unsigned int)rand() % choices;
+            idol_selection_box[i]->setCurrentIndex(list[n]);
+            list[n] = list[--choices];
         }
     }
+    delete[] list;
 }
 
 void MainWindow::setIdolName(const QString&)
@@ -520,14 +527,14 @@ void MainWindow::applyOneshotCommand(QWORD pos, const std::string &command)
     }
 
     std::string filtered = filterCommand(command);
-    int numSinging = filtered.length();
-    size_t n = std::count(filtered.begin(), filtered.end(), 'x');
-    for(int i = 0; i < numSinging; ++i)
+    unsigned int numSinging = filtered.length();
+    int n = std::count(filtered.begin(), filtered.end(), 'x');
+    for(unsigned int i = 0; i < numSinging; ++i)
     {
         if(filtered[i] != 'x')
         {
             QWORD len = BASS_ChannelGetLength(idols_oneshot[filtered[i] - 48]->get_decode_channel(), BASS_POS_BYTE);
-            if(mappos >= 0 && mappos < len)
+            if(mappos < len)
             {
                 BASS_ChannelSetAttribute(idols_oneshot[filtered[i] - 48]->get_decode_channel(), BASS_ATTRIB_VOL, idol_vol * volTable[numSinging - 1 - n] / (is_usotsuki ? 0.75 : 0.95));
                 BASS_ChannelSetAttribute(idols_oneshot[filtered[i] - 48]->get_decode_channel(), BASS_ATTRIB_PAN, panTable[numSinging - 1][i]);

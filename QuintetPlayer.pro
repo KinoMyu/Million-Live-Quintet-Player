@@ -51,3 +51,7 @@ INCLUDEPATH += $$PWD/.
 DEPENDPATH += $$PWD/.
 
 TRANSLATIONS = QuintetPlayer_ja.ts
+
+win32-msvc* {
+    QMAKE_CXXFLAGS_RELEASE += /O2 /Ob2 /Zc:inline /Zc:forScope
+}
