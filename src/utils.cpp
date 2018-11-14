@@ -44,7 +44,7 @@ void export_to_wav(HSTREAM mix_stream, const std::string& filename, const std::m
             }
         }
         it = oneshot_event_list.upper_bound(p);
-        if(it != event_list.end())
+        if(it != oneshot_event_list.end())
         {
             int samples_to_next = it->first - p;
             if(samples_to_next > 0 && samples_to_next < numsamples_to_read)
