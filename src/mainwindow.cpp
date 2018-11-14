@@ -502,7 +502,7 @@ std::string MainWindow::filterCommand(const std::string &command)
         {
             while(idolnum >= 0 && idolnum < unit_size)
             {
-                if(singing_set.find(idolnum) == singing_set.end() && idol_to_type[current_idols[idolnum]] & ALL)
+                if(singing_set.find(idolnum) == singing_set.end() && !(idols[idolnum]->get_decode_channel() == 0 && idols_oneshot[idolnum]->get_decode_channel() == 0))
                 {
                     singing_set.insert(idolnum);
                     filtered += (char)(idolnum + 48);

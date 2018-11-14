@@ -35,14 +35,22 @@ void export_to_wav(HSTREAM mix_stream, const std::string& filename, const std::m
         // Get number of samples until next sync event
         int numsamples_to_read = 50000;
         auto it = event_list.upper_bound(p);
-        if(it != event_list.end() && it->first - p < numsamples_to_read)
+        if(it != event_list.end())
         {
-            numsamples_to_read = it->first - p;
+            int samples_to_next = it->first - p;
+            if(samples_to_next > 0 && samples_to_next < numsamples_to_read)
+            {
+                numsamples_to_read = it->first - p;
+            }
         }
         it = oneshot_event_list.upper_bound(p);
-        if(it != event_list.end() && it->first - p < numsamples_to_read)
+        if(it != event_list.end())
         {
-            numsamples_to_read = it->first - p;
+            int samples_to_next = it->first - p;
+            if(samples_to_next > 0 && samples_to_next < numsamples_to_read)
+            {
+                numsamples_to_read = it->first - p;
+            }
         }
         c = BASS_ChannelGetData(mix_stream, buf, numsamples_to_read * 4);
         p += numsamples_to_read;
