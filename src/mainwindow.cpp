@@ -223,18 +223,22 @@ void MainWindow::randomizeUnit()
     unsigned int choices = idol_selection_box[0]->count() - 1;
     unsigned int* list = new unsigned int[choices];
     unsigned int* it = list;
+    unsigned int count = 0;
     for(unsigned int i = 1; i <= choices; ++i)
     {
-        *(it++) = i;
-    }
-    if(idol_selection_box[0]->count() > 1)
-    {
-        for(int i = 0; i < unit_size; ++i)
+        QFileInfo check_file("res/" + QString::fromLocal8Bit(current_song.c_str()) + "/" + idol_selection_box[0]->itemData(i).value<QString>() + ".hca");
+        QFileInfo check_file2("res/" + QString::fromLocal8Bit(current_song.c_str()) + "/oneshot/" + idol_selection_box[0]->itemData(i).value<QString>() + ".hca");
+        if(check_file.exists() || check_file2.exists())
         {
-            unsigned int n = (unsigned int)rand() % choices;
-            idol_selection_box[i]->setCurrentIndex(list[n]);
-            list[n] = list[--choices];
+            list[count++] = i;
         }
+    }
+    for(int i = 0; i < unit_size; ++i)
+    {
+        if(!count) break;
+        unsigned int n = (unsigned int)rand() % count;
+        idol_selection_box[i]->setCurrentIndex(list[n]);
+        list[n] = list[--count];
     }
     delete[] list;
 }
