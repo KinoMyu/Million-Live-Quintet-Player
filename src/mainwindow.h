@@ -8,6 +8,7 @@
 #include <QCheckBox>
 #include <QLabel>
 #include <unordered_map>
+#include <deque>
 #include "HCAStreamChannel.h"
 #include "utils.h"
 #include "../HCADecoder/HCADecodeService.h"

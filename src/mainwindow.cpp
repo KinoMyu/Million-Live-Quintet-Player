@@ -222,7 +222,6 @@ void MainWindow::randomizeUnit()
 {
     unsigned int choices = idol_selection_box[0]->count() - 1;
     unsigned int* list = new unsigned int[choices];
-    unsigned int* it = list;
     unsigned int count = 0;
     for(unsigned int i = 1; i <= choices; ++i)
     {
