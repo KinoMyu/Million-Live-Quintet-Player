@@ -8,6 +8,11 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    QFont font = qApp->font();
+    font.setPixelSize(11);
+    qApp->setFont(font);
+
     QTranslator translator;
 
     BASS_Init(-1,44100,BASS_DEVICE_LATENCY,0,NULL);

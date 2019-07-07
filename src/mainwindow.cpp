@@ -88,9 +88,17 @@ MainWindow::MainWindow(QWidget *parent) :
     idol_image[11] = ui->idolimage11;
     idol_image[12] = ui->idolimage12;
 
+    QFont font = qApp->font();
+    font.setFamily("Meiryo UI");
+    font.setPixelSize(15);
+    ui->label->setFont(font);
+
     bgm = new HCAStreamChannel(&dec, 0.9f);
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
+        auto szpolicy = idol_image[i]->sizePolicy();
+        szpolicy.setHeightForWidth(true);
+        idol_image[i]->setSizePolicy(szpolicy);
         idols[i] = new HCAStreamChannel(&dec, 0.9f);
         idols_oneshot[i] = new HCAStreamChannel(&dec, 0.9f);
         connect(idol_selection_box[i], SIGNAL(currentIndexChanged(QString)), this, SLOT(setIdolName(QString)));
