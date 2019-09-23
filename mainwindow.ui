@@ -1260,7 +1260,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Usotsuki</string>
+     <string>Appeal Only</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>

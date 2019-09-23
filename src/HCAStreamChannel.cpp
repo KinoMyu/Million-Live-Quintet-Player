@@ -1,5 +1,5 @@
 #include "HCAStreamChannel.h"
-#include "../HCADecoder/clHCA.h"
+#include "../FastHCADecoder/clHCA.h"
 
 HCAStreamChannel::HCAStreamChannel(HCADecodeService* dec, float volume, unsigned int cipher_key_1, unsigned int cipher_key_2, unsigned int sub_key)
     : dec {dec},

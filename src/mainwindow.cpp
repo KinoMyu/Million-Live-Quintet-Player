@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <set>
+#include <thread>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "../bass/bass.h"
@@ -26,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
     idol_mix_stream {BASS_Mixer_StreamCreate(44100,2,BASS_STREAM_DECODE)},
     idol_oneshot_stream {BASS_Mixer_StreamCreate(44100,2,BASS_STREAM_DECODE)},
     freeverb_params {1, 0.4f, 0.76f, 0.3f, 1, 0, BASS_BFX_CHANALL},
-    dec {2}
+    dec {std::thread::hardware_concurrency() > 2 ? std::thread::hardware_concurrency() / 2: 1}
 {
     QString locale = QLocale::system().name();
     locale.truncate(locale.lastIndexOf('_'));
@@ -269,7 +270,7 @@ void MainWindow::setBGM(const QString&)
 {
     current_song = ui->songsel->currentData().value<QString>().toLocal8Bit().constData();
 
-    is_usotsuki = current_song == "macpri";
+    is_usotsuki = current_song == "macpri" || current_song == "whitev";
     unit_size = is_usotsuki ? 1 : old_unit_size;
     ui->usotsukilabel->setVisible(is_usotsuki);
     ui->soloButton->setVisible(!is_usotsuki);
