@@ -11,7 +11,7 @@
 #include <deque>
 #include "HCAStreamChannel.h"
 #include "utils.h"
-#include "../HCADecoder/HCADecodeService.h"
+#include "../FastHCADecoder/HCADecodeService.h"
 #include "../bass/bass.h"
 #include "../bass/bass_fx.h"
 

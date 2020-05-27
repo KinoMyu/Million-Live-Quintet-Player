@@ -5,7 +5,7 @@
 
 #include <string>
 #include "../bass/bass.h"
-#include "../HCADecoder/HCADecodeService.h"
+#include "../FastHCADecoder/HCADecodeService.h"
 
 class HCAStreamChannel
 {
