@@ -328,13 +328,28 @@ void MainWindow::setBGM(const QString&)
 void MainWindow::setPosition(int value)
 {
     QWORD len = BASS_ChannelGetLength(bgm->get_decode_channel(), BASS_POS_BYTE);
-    QWORD pos = (long double)len / 2 / ui->positionSlider->maximum() * value;
+    BASS_CHANNELINFO bgminfo;
+    BASS_ChannelGetInfo(bgm->get_decode_channel(), &bgminfo);
+
+    bool was_playing = true;
+    if(BASS_ChannelIsActive(play_stream) == BASS_ACTIVE_PAUSED)
+    {
+        was_playing = false;
+    }
+    QWORD pos = (long double)len / (bgminfo.chans ? bgminfo.chans : 1) / ui->positionSlider->maximum() * value;
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
-        BASS_ChannelSetPosition(idols[i]->get_decode_channel(), pos, BASS_POS_BYTE);
+        BASS_CHANNELINFO idolinfo;
+        BASS_ChannelGetInfo(idols[i]->get_decode_channel(), &idolinfo);
+        BASS_ChannelSetPosition(idols[i]->get_decode_channel(), idolinfo.chans * pos, BASS_POS_BYTE);
     }
     BASS_ChannelSetPosition(bgm->get_decode_channel(), pos * 2, BASS_POS_BYTE);
     fuzzyAdjust();
+
+    if(was_playing)
+    {
+        BASS_ChannelPlay(play_stream, FALSE);
+    }
 }
 
 void MainWindow::play()
@@ -394,8 +409,12 @@ void MainWindow::setIdol(int index)
     idol_pixmap[index] = QPixmap(filename);
     idol_image[index]->setPixmap(idol_pixmap[index]);
 
-    QWORD pos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
-    idols[index]->load("res/" + current_song + "/" + current_idols[index] + ".hca", pos/4);
+    BASS_CHANNELINFO bgminfo;
+    BASS_ChannelGetInfo(bgm->get_decode_channel(), &bgminfo);
+
+    QWORD pos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE) / (bgminfo.chans ? bgminfo.chans : 1);
+
+    idols[index]->load("res/" + current_song + "/" + current_idols[index] + ".hca", pos/2);
     idols_oneshot[index]->load("res/" + current_song + "/oneshot/" + current_idols[index] + ".hca", 0);
 
     if(index >= unit_size)
@@ -411,8 +430,11 @@ void MainWindow::setIdol(int index)
             was_playing = false;
         }
         BASS_ChannelPause(play_stream);
-        pos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
-        BASS_ChannelSetPosition(idols[index]->get_decode_channel(), pos / 2, BASS_POS_BYTE);
+
+        BASS_CHANNELINFO idolinfo;
+        BASS_ChannelGetInfo(idols[index]->get_decode_channel(), &idolinfo);
+
+        BASS_ChannelSetPosition(idols[index]->get_decode_channel(), pos * idolinfo.chans, BASS_POS_BYTE);
         BASS_Mixer_StreamAddChannel(idol_mix_stream, idols[index]->get_decode_channel(), 0);
         fuzzyAdjust();
         if(was_playing)
@@ -455,6 +477,16 @@ void MainWindow::reautomateVolumes()
     parse_control_file(oneshot_event_list, "res/" + current_song + "/oneshot" + std::to_string(unit_size) + ".txt");
     addSyncEvents();
 
+    BASS_CHANNELINFO bgminfo;
+    BASS_ChannelGetInfo(bgm->get_decode_channel(), &bgminfo);
+
+    bool was_playing = true;
+    if(BASS_ChannelIsActive(play_stream) == BASS_ACTIVE_PAUSED)
+    {
+        was_playing = false;
+    }
+    BASS_ChannelPause(play_stream);
+
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
         // Don't unload, rather just cleanup channels
@@ -467,12 +499,21 @@ void MainWindow::reautomateVolumes()
         {
             idols[i]->make_channels();
             idols_oneshot[i]->make_channels();
-            QWORD position = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE);
-            BASS_ChannelSetPosition(idols[i]->get_decode_channel(), position / 2, BASS_POS_BYTE);
+
+            BASS_CHANNELINFO idolinfo;
+            BASS_ChannelGetInfo(idols[i]->get_decode_channel(), &idolinfo);
+
+            QWORD position = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE) / (bgminfo.chans ? bgminfo.chans : 1);
+            BASS_ChannelSetPosition(idols[i]->get_decode_channel(), position * idolinfo.chans, BASS_POS_BYTE);
             BASS_Mixer_StreamAddChannel(idol_mix_stream, idols[i]->get_decode_channel(), 0);
         }
     }
     fuzzyAdjust();
+
+    if(was_playing)
+    {
+        BASS_ChannelPlay(play_stream, FALSE);
+    }
 }
 
 std::string MainWindow::findIdolsOfType(char type)
@@ -529,7 +570,10 @@ std::string MainWindow::filterCommand(const std::string &command)
 
 void MainWindow::applyOneshotCommand(QWORD pos, const std::string &command)
 {
-    QWORD bgmpos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE) / 4;
+    BASS_CHANNELINFO bgminfo;
+    BASS_ChannelGetInfo(bgm->get_decode_channel(), &bgminfo);
+
+    QWORD bgmpos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE) / (bgminfo.chans ? bgminfo.chans : 1) / 2;
     QWORD mappos = (bgmpos - pos) * 2;
 
     for(int i = 0; i < unit_size; ++i)
@@ -545,13 +589,20 @@ void MainWindow::applyOneshotCommand(QWORD pos, const std::string &command)
     {
         if(filtered[i] != 'x')
         {
-            QWORD len = BASS_ChannelGetLength(idols_oneshot[filtered[i] - 48]->get_decode_channel(), BASS_POS_BYTE);
-            if(mappos < len)
+            DWORD ichan = idols_oneshot[filtered[i] - 48]->get_decode_channel();
+            QWORD len = BASS_ChannelGetLength(ichan, BASS_POS_BYTE);
+
+            BASS_CHANNELINFO idolinfo;
+            BASS_ChannelGetInfo(ichan, &idolinfo);
+
+            QWORD cmappos = mappos * idolinfo.chans;
+
+            if(cmappos < len)
             {
-                BASS_ChannelSetAttribute(idols_oneshot[filtered[i] - 48]->get_decode_channel(), BASS_ATTRIB_VOL, idol_vol * volTable[numSinging - 1 - n] / (is_usotsuki ? 0.75 : 0.95));
-                BASS_ChannelSetAttribute(idols_oneshot[filtered[i] - 48]->get_decode_channel(), BASS_ATTRIB_PAN, panTable[numSinging - 1][i]);
-                BASS_ChannelSetPosition(idols_oneshot[filtered[i] - 48]->get_decode_channel(), mappos, BASS_POS_BYTE);
-                BASS_Mixer_StreamAddChannel(idol_oneshot_stream, idols_oneshot[filtered[i] - 48]->get_decode_channel(), 0);
+                BASS_ChannelSetAttribute(ichan, BASS_ATTRIB_VOL, idol_vol * volTable[numSinging - 1 - n] / (is_usotsuki ? 0.75 : 0.95));
+                BASS_ChannelSetAttribute(ichan, BASS_ATTRIB_PAN, panTable[numSinging - 1][i]);
+                BASS_ChannelSetPosition(ichan, cmappos, BASS_POS_BYTE);
+                BASS_Mixer_StreamAddChannel(idol_oneshot_stream, ichan, 0);
             }
         }
     }
@@ -629,7 +680,10 @@ void MainWindow::addSyncEvents()
 
 void MainWindow::fuzzyAdjust()
 {
-    QWORD pos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE) / 4;
+    BASS_CHANNELINFO bgminfo;
+    BASS_ChannelGetInfo(bgm->get_decode_channel(), &bgminfo);
+
+    QWORD pos = BASS_ChannelGetPosition(bgm->get_decode_channel(), BASS_POS_BYTE) / (bgminfo.chans ? bgminfo.chans : 1) / 2;
     if(!event_list.empty())
     {
         auto it = event_list.upper_bound(pos);
