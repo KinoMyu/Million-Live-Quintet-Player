@@ -270,7 +270,7 @@ void MainWindow::setBGM(const QString&)
 {
     current_song = ui->songsel->currentData().value<QString>().toLocal8Bit().constData();
 
-    is_usotsuki = current_song == "macpri" || current_song == "whitev";
+    is_usotsuki = current_song == "macpri" || current_song == "whitev" || current_song == "bbvolb";
     unit_size = is_usotsuki ? 1 : old_unit_size;
     ui->usotsukilabel->setVisible(is_usotsuki);
     ui->soloButton->setVisible(!is_usotsuki);
@@ -292,9 +292,9 @@ void MainWindow::setBGM(const QString&)
     for(int i = 0; i < NUM_IDOLS; ++i)
     {
         idol_selection_box[i]->blockSignals(true);
-        for(int j = 53; idol_selection_box[i]->count() > 53 ; ++j)
+        while(idol_selection_box[i]->count() > 53)
         {
-            idol_selection_box[i]->removeItem(j);
+            idol_selection_box[i]->removeItem(53);
         }
     }
 
